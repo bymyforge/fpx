@@ -15,3 +15,6 @@ class NullData(ParseException):
 
 class MessageNotDelivered(AccountError):
     message = 'Message is not delivered'
+
+class RaisingLotError(AccountError):
+    message = 'Raising lot error'

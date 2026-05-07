@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from models.chat import ChatData
 from api.client import FunPayClient
 from api.parsers import FunPayParser
-from utils.errors import MessageNotDelivered
+from utils.errors import MessageNotDelivered, RaisingLotError
 
 
 class Account:
@@ -88,6 +88,7 @@ class Account:
         html = await self.client.get_user_profile(target_id)
         data = self.parser.parse_profile(html)
         return data
+        #todo: добавить парсинг всех лотов, сбор их в обьект со словарём айди лота:название для смены цен, быстрого снятия лотов, деактивации лотов и тд
 
     async def get_game_id(self, category_id):
         '''
@@ -103,12 +104,15 @@ class Account:
         '''
         if not self.csrf_token:
             await self.get_user_data()
-        category_list = await self.profile()
-        response = []
-        for node_id in category_list:
-            game_id = await self.get_game_id(node_id)
-            response.append(await self.client.raise_lot(node_id, game_id, self.csrf_token))
-        return response
+        try:
+            category_list = await self.profile()
+            response = []
+            for node_id in category_list:
+                game_id = await self.get_game_id(node_id)
+                response.append(await self.client.raise_lot(node_id, game_id, self.csrf_token))
+            return response
+        except Exception as e:
+            raise RaisingLotError()
 
     async def get_user_data(self):
         '''
