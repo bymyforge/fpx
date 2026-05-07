@@ -17,3 +17,9 @@ class Chat:
     date: str
     link: str
     is_unread: bool
+
+@dataclass
+class ChatData:
+    node_name: str
+    csrf_token: str
+    user_id: str
