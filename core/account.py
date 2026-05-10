@@ -1,7 +1,7 @@
 
 from bs4 import BeautifulSoup
 from models.chat import ChatData
-from models.account import LotInfo, Profile, UserData
+from models.account import LotInfo, Profile, UserData, Order
 from models.lots import CurrentLotInfo
 from api.client import FunPayClient
 from api.parsers import FunPayParser
@@ -22,12 +22,12 @@ class Account:
         '''
 
         The function calls the chats in account, returns an object with values:  
-        id: str, Chat id (node)  
-        username: str, Client nickname  
-        last_msg: str, Last message in chat  
-        date: str, last message date  
-        link: str, full chat link (https://funpay.com/chat/?node=id)  
-        is_unread: bool, Readed or not  
+            id: str, Chat id (node)  
+            username: str, Client nickname  
+            last_msg: str, Last message in chat  
+            date: str, last message date  
+            link: str, full chat link (https://funpay.com/chat/?node=id)  
+            is_unread: bool, Readed or not  
           
         '''
         html = await self.client.get_chats_page()
@@ -41,9 +41,9 @@ class Account:
         '''
 
         The function calls the account balance, returns an object with values:  
-        rub: float  
-        usd: float  
-        eur: float  
+            rub: float  
+            usd: float  
+            eur: float  
           
         '''
         html = await self.client.get_finance_page()
@@ -125,8 +125,8 @@ class Account:
     async def get_user_data(self):
         '''
         Func gets user data, and save it to cache
-        user_id
-        csrf_token
+            user_id
+            csrf_token
         '''
         html = await self.client.get_main_menu()
         data = self.parser.parse_main_menu(html)
@@ -135,15 +135,52 @@ class Account:
         user_data = UserData(csrf_token=data['csrf-token'], user_id=data['user-id'])
         return user_data
 
+    async def get_my_sells(self, limit:int=0):
+        '''
+        Accept limit of orders arg, can be null(return all orders)
+        Func get https://funpay.com/orders/trade
+        Returns list of objects with orders
+            order_id: str
+            order_time: str
+            client_name: str
+            price: float
+            status: str
+            name: str
+            category: str
+        '''
+        html = await self.client.get_my_sells()
+        data = self.parser.parse_my_sells(html)
+        counter = 0
+        result = []
+        if limit > 0:
+            counter += 1
+        for i in data:
+            if limit != 0 and counter > limit:
+                break
+            order = Order(
+                order_id=i['order-id'],
+                order_time=i['order-time'],
+                client_name=i['client-name'],
+                price=i['price'],
+                status=i['status'],
+                name=i['name'],
+                category=i['category']
+            )
+            result.append(order)
+            counter += 1
+        return result
+
     async def change_lot_price(self, lot_id, new_price):
-        pass
+        '''
+        Func was charging price of lot
+        '''
 
     async def get_lot_info(self, lot_id):
         '''
         Func gets lot data:  
-        short_desc: str  
-        description: str  
-        price: float  
+            short_desc: str  
+            description: str  
+            price: float  
         '''
         html = await self.client.get_lot_info(lot_id)
         data = self.parser.parse_current_lot_menu(html)

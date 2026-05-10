@@ -20,3 +20,13 @@ class Profile:
 class UserData:
     csrf_token: str
     user_id: str
+
+@dataclass
+class Order:
+    order_id: str
+    order_time: str
+    client_name: str
+    price: float
+    status: str
+    name: str
+    category: str

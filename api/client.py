@@ -71,3 +71,7 @@ class FunPayClient:
     async def get_lot_info(self, lot_id):
         r = await self.client.get(f'/lots/offer?id={lot_id}')
         return r.text
+
+    async def get_my_sells(self):
+        r = await self.client.get('/orders/trade')
+        return r.text

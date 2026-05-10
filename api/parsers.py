@@ -140,3 +140,22 @@ class FunPayParser:
                     result['price'] = raw_price.replace('₽', '').replace('\xa0', '').replace(' ', '').strip()
                     return result
         raise NullData('Parse current lot menu dont have needed data')
+
+    @staticmethod
+    def parse_my_sells(html_content):
+        result = []
+        soup = BeautifulSoup(html_content, 'html.parser')
+        tc_items = soup.find_all('a', class_='tc-item')
+        for item in tc_items:
+            pre_result = {}
+            pre_result['order-id'] = item.find('div', class_='tc-order').get_text(strip=True)
+            pre_result['order-time'] = item.find('div', class_='tc-date-time').get_text(strip=True)
+            pre_result['client-name'] = item.find('span', class_='pseudo-a').get_text(strip=True)
+            pre_result['status'] = item.find('div', class_='tc-status').get_text(strip=True)
+            pre_result['price'] = item.find('div', class_='tc-price').get_text(strip=True)
+            order_desc = item.find('div', class_='order-desc')
+            divs = order_desc.find_all('div')
+            pre_result['name'] = divs[0].get_text(strip=True)
+            pre_result['category'] = divs[1].get_text(strip=True)
+            result.append(pre_result)
+        return result
