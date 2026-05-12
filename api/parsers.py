@@ -175,5 +175,15 @@ class FunPayParser:
         soup = BeautifulSoup(html_content, 'html.parser')
         result = {}
         hidden_inputs = soup.find_all('input', type='hidden')
-        result = {tag.get('name'): tag.get('value') for tag in hidden_inputs if tag.get('name')}
+        result = {tag.get('name'): tag.get('value', '') for tag in hidden_inputs if tag.get('name')}
+        selects = soup.find_all('select')
+        for s in selects:
+            name = s.get('name')
+            if not name: continue
+            selected_option = s.find('option', selected=True)
+            if selected_option:
+                result[name] = selected_option.get('value', '')
+            else:
+                first_opt = s.find('option')
+                result[name] = first_opt.get('value', '') if first_opt else ''
         return result

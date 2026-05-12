@@ -1,6 +1,6 @@
 import httpx
 
-from core.account import Account
+from classes.account.account import Account
 
 class FunPayTools:
     def __init__(self, gkey):

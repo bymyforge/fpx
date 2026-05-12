@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -15,3 +15,9 @@ class LotEditor:
     node_id: str
     location: str
     deleted: str
+    fields: dict = field(default_factory=dict)
+
+@dataclass
+class LotInfo:
+    name: str
+    id: str
