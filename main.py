@@ -1,6 +1,7 @@
 import httpx
 
 from classes.account.account import Account
+from classes.runner.runner import Runner
 
 class FunPayTools:
     def __init__(self, gkey):
@@ -16,3 +17,4 @@ class FunPayTools:
             base_url='https://funpay.com'
         )
         self.account = Account(self.client)
+        self.runner = Runner(self.account)
