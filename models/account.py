@@ -26,3 +26,9 @@ class Order:
     status: Optional[str] = None
     name: Optional[str] = None
     category: Optional[str] = None
+    review: Optional[dict] = None
+
+@dataclass
+class Review:
+    text: str
+    stars: int

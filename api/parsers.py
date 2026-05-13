@@ -163,8 +163,11 @@ class FunPayParser:
     def parse_order_page(html_content):
         soup = BeautifulSoup(html_content, 'html.parser')
         result = {}
+        result['review'] = {}
         try:
-            result['status'] = soup.find('span', class_='text-warning').get_text(strip=True)
+            result['status'] = soup.find('h1', class_='page-header').find('span').get_text(strip=True)
+            result['review']['text'] = soup.find('div', class_='review-item-text').get_text(strip=True)
+            result['review']['stars'] = soup.find('div', class_='review-container').get('data-rating')
         except AttributeError:
             result['status'] = 'Ошибка'
             return result

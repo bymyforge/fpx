@@ -13,7 +13,8 @@ class OrderManager:
         '''
         html = await self.account.client.get_order_info(order_id)
         data = self.account.parser.parse_order_page(html)
-        order = Order(status=data['status'])
+        print(data)
+        order = Order(status=data['status'], review=data['review'])
         return order
 
     async def refund_order(self, order_id):

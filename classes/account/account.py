@@ -7,6 +7,7 @@ from classes.account.subclasses.profile import ProfileManager
 from classes.account.subclasses.order import OrderManager
 from classes.account.subclasses.lot import LotManager
 from classes.account.subclasses.editor import FunPayEditor
+from classes.account.subclasses.review import ReviewManager
 
 class Account:
     def __init__(self, client):
@@ -23,3 +24,4 @@ class Account:
         self.order = OrderManager(self)
         self.lot = LotManager(self)
         self.editor = FunPayEditor(self)
+        self.review = ReviewManager(self)
