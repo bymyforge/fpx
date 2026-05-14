@@ -26,7 +26,7 @@ class ChatRunner:
         for chat in chats:
             if counter > 30:
                 break
-            chat = {chat.username: chat.last_msg}
+            chat = {'sender': chat.username, 'id': chat.id, 'last_msg': chat.last_msg}
             result.append(chat)
             counter += 1
         self.runner.old_msgs = self.runner.msgs

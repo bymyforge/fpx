@@ -15,8 +15,12 @@ class Runner:
         self.old_msgs = []
         self.orders = []
         self.old_orders = []
+        self.cache_is_updated = False
+        #   хендлеры
         self.message_handlers = []
         self.order_handlers = []
+        self.on_confirmed_handlers = []
+        self.on_new_orders_handlers = []
     
     async def runner_polling(self, timer):
         '''
@@ -43,9 +47,30 @@ class Runner:
             self.order_handlers.append(func)
             return func
         return decorator
+    
+    def on_confirmed_handler(self):
+        def decorator(func):
+            self.on_confirmed_handlers.append(func)
+            return func
+        return decorator
+
+    def on_new_order_handler(self):
+        def decorator(func):
+            self.on_new_orders_handlers.append(func)
+            return func
+        return decorator
+
+    async def warm_up(self):
+        '''Прогрев кеша'''
+        for _ in range(2):
+            await self.chat.update_chat_cache()
+            await self.order.update_order_cache()
+        self.cache_is_updated = True
 
     async def cache_runner(self):
-
+        if not self.cache_is_updated:
+            await self.warm_up()
+            return
         #   проверка чатов
         await self.chat.update_chat_cache()
         chats = await self.chat.compare_chat_cache()
@@ -56,5 +81,12 @@ class Runner:
         await self.order.update_order_cache()
         orders = await self.order.compare_order_cache()
         if orders:
-            for handler in self.order_handlers:
-                await handler(orders)
+            for order in orders:
+                for handler in self.order_handlers:
+                    await handler(order)
+                if order['status'] == 'Закрыт':
+                    for handler in self.on_confirmed_handlers:
+                        await handler(order)
+                elif order['status'] in('Оплачено', 'Оплачен'):
+                    for handler in self.on_new_orders_handlers:
+                        await handler(order)

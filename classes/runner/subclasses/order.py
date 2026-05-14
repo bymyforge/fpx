@@ -17,7 +17,8 @@ class OrderRunner:
                 'time': order.order_time,
                 'client_name': order.client_name,
                 'price': order.price,
-                'name': order.name
+                'name': order.name,
+                'status': order.status
             }
             result.append(o)
         self.runner.old_orders = self.runner.orders
@@ -33,4 +34,3 @@ class OrderRunner:
                 if order not in self.runner.old_orders:
                     result.append(order)
         return result
-        
