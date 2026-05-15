@@ -8,7 +8,20 @@ class LotManager:
 
     async def get_lot_editor_details(self, lot_id):
         '''
-        Get data from https://funpay.com/lots/offerEdit?offer={lot_id}
+        Не для обычного использования! (функция для изменения лота)
+        Получает данные для изменения лота с https://funpay.com/lots/offerEdit?offer={lot_id}.
+
+        Args:
+            lot_id (str | int): Айди лота
+        Returns:
+            LotEditor: Возвращает объект с:
+                - csrf_token (str): нужен для любого post запроса.  
+                - form_created_at (str): время создания формы изменения лота.  
+                - offer_id (str): Айди оффера(лота).  
+                - node_id (str): Айди нода.  
+                - location (str): Обычно пустой.  
+                - deleted (str): Обычно пустой.  
+                - fields (dict): Словарь с филдами, нет фиксированного кол-ва филдов, просто отправляйте все.  
         '''
         html = await self.account.client.get_lot_editor_data(lot_id)
         data = self.account.parser.parse_edit_lot_page(html)
@@ -20,10 +33,15 @@ class LotManager:
 
     async def get_lot_info(self, lot_id):
         '''
-        Func gets lot data:  
-            short_desc: str  
-            description: str  
-            price: float  
+        Собирает данные лота.
+
+        Args:
+            lot_id (str | int): ID лота.
+        Returns:
+            CurrentLotInfo: Объект с этими данными:  
+                - short_desc (str): Краткое описание.   
+                - description (str): Полное описание.  
+                - price (float): Цена лота.  
         '''
         html = await self.account.client.get_lot_info(lot_id)
         data = self.account.parser.parse_current_lot_menu(html)
@@ -36,7 +54,13 @@ class LotManager:
 
     async def raise_lots(self):
         '''
-        The function raises your lots and returns a response from the FunPay server.
+        Поднимает все лоты.
+
+        Returns:
+            list: Ответы от сервера. 
+        Raises:
+            NullData: Ни один лот не найден.
+            RaisingLotError: Лот не поднят. 
         '''
         if not self.account.csrf_token:
             await self.account.profile.get_user_data()

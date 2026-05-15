@@ -72,9 +72,7 @@ class Runner:
         self.cache_is_updated = True
 
     async def cache_runner(self):
-        '''
-        Управляет кешем
-        '''
+        '''Управляет кешем'''
         if not self.cache_is_updated:
             await self.warm_up()
             return

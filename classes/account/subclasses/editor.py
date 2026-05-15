@@ -7,11 +7,16 @@ class FunPayEditor:
 
     async def change_lot_price(self, lot_id, new_price: str):
         '''
-        Func change lot price, accept:
-            lot_id
-            new_price: str
-        Returns True if change, if not change raise LotEditingError, 
-        raise RequestError if bad internet 
+        Изменяет цену лота.
+
+        Args:
+            lot_id (str | int): Айди лота
+            new_price (str): Новая цена лота
+        Returns:
+            bool: True - цена изменилась.
+        Raises:
+            LotEditingError: Цена не изменилась 
+            RequestError: Плохое соединение с интернетом/сервер не ответил
         '''
         lot = await self.account.lot.get_lot_editor_details(lot_id)
         lot.fields['price'] = new_price
@@ -25,7 +30,14 @@ class FunPayEditor:
 
     async def toggle_off_lot(self, lot_id):
         '''
+        Выключает лот.
 
+        Args:
+            lot_id (str | int): Айди лота
+        Returns:
+            bool: True - лот выключен
+        Raises:
+            RequestError: Сервер не ответил
         '''
         lot = await self.account.lot.get_lot_editor_details(lot_id)
         response = await self.account.client.edit_lot(lot)
@@ -35,6 +47,14 @@ class FunPayEditor:
 
     async def toggle_on_lot(self, lot_id):
         '''
+        Включает лот.
+
+        Args:
+            lot_id (str | int): Айди лота
+        Returns:
+            bool: True - лот включен
+        Raises:
+            RequestError: Сервер не ответил
         '''
         lot = await self.account.lot.get_lot_editor_details(lot_id)
         response = await self.account.client.edit_lot(lot, active=True)
