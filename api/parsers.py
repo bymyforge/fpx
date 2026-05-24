@@ -177,16 +177,24 @@ class FunPayParser:
         result = {}
         result['review'] = {}
         try:
-            result['status'] = soup.find('h1', class_='page-header').find('span').get_text(strip=True)
-            result['review']['text'] = soup.find('div', class_='review-item-text').get_text(strip=True)
-            review_container = soup.find('div', class_='review-container')
-            result['review']['stars'] = review_container.get('data-rating')
-            answer_div = review_container.find('div', class_='review-item-answer')
-            text_container = answer_div.find('div')
-            result['review']['answer'] = text_container.get_text('\n', strip=True)
-        except AttributeError:
-            result['status'] = 'Ошибка'
-            return result
+            header = soup.find('h1', class_='page-header')
+            spans = header.find_all('span')
+            result['status'] = " / ".join([span.get_text(strip=True) for span in spans])
+            try:
+                result['review']['text'] = soup.find('div', class_='review-item-text').get_text(strip=True)
+                review_container = soup.find('div', class_='review-container')
+                result['review']['stars'] = review_container.get('data-rating')
+                answer_div = review_container.find('div', class_='review-item-answer')
+                text_container = answer_div.find('div')
+                result['review']['answer'] = text_container.get_text('\n', strip=True)
+            except AttributeError:
+                raise NullData(message='Отзыв не найден')
+        except NullData:
+            result['review']['text'] = ''
+            result['review']['stars'] = 0
+            result['review']['answer'] = ''
+        except Exception as e:
+            raise ParseException(message=e)
         return result
 
     @staticmethod

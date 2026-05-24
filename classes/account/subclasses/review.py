@@ -37,9 +37,9 @@ class ReviewManager:
         Raises:
             AnswerReviewError: При ошибке (ответ не совпадает заданному/сервер не вернул ничего).
         '''
-        if not self.account.user_id or not self.account.csrf_token:
+        if not self.account.user_id or not self.account._csrf_token:
             await self.account.profile.get_user_data()
-        r = await self.account.client.answer_review(self.account.user_id, text, self.account.csrf_token, order_id)
+        r = await self.account.client.answer_review(self.account.user_id, text, self.account._csrf_token, order_id)
         try:
             response = r.json()
         except json.JSONDecodeError:

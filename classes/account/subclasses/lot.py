@@ -62,7 +62,7 @@ class LotManager:
             NullData: Ни один лот не найден.
             RaisingLotError: Лот не поднят. 
         '''
-        if not self.account.csrf_token:
+        if not self.account._csrf_token:
             await self.account.profile.get_user_data()
         try:
             profile = await self.account.profile.profile()
@@ -72,7 +72,7 @@ class LotManager:
             response = []
             for node_id in category_list:
                 game_id = await self.account.addons.get_game_id(node_id)
-                response.append(await self.account.client.raise_lot(node_id, game_id, self.account.csrf_token))
+                response.append(await self.account.client.raise_lot(node_id, game_id, self.account._csrf_token))
             return response
         except Exception as e:
             raise RaisingLotError()

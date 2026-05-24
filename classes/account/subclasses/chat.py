@@ -38,9 +38,9 @@ class ChatManager:
             MessageNotDelivered: Если не удалось отправить сообщение.   
         
         """
-        if chat_id not in self.account.node_names or not self.account.csrf_token:
+        if chat_id not in self.account._node_names or not self.account._csrf_token:
             await self.get_chat_data(chat_id)
-        response = await self.account.client.send_message_request(self.account.node_names[chat_id], -1, text, self.account.csrf_token)
+        response = await self.account.client.send_message_request(self.account._node_names[chat_id], -1, text, self.account._csrf_token)
         inner_response = response.get('response', {})
         if inner_response.get('error') is None:
             return True
@@ -64,7 +64,7 @@ class ChatManager:
         html = await self.account.client.get_current_chat(chat_id)
         data = self.account.parser.parse_chat(html)
         chat = ChatData(node_name=data['data-name'], csrf_token=data['csrf-token'], user_id=data['user-id'])
-        self.account.node_names[chat_id] = chat.node_name
-        self.account.csrf_token = chat.csrf_token
+        self.account._node_names[chat_id] = chat.node_name
+        self.account._csrf_token = chat.csrf_token
         self.account.user_id = chat.user_id
         return chat

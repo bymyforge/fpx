@@ -18,9 +18,8 @@ class Account:
         self.client = FunPayClient(self.http_client)
         self.parser = FunPayParser()
         self.user_id = None
-        self.csrf_token = None
-        self.last_msg_ids = {}
-        self.node_names = {}
+        self._csrf_token = None
+        self._node_names = {}
         self.chat = ChatManager(self)
         self.addons = AddonsManager(self)
         self.profile = ProfileManager(self)

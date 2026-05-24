@@ -17,7 +17,9 @@ class OrderManager:
                 - review (dict): Словарь с данными отзыва, который оставили к заказу.  
         '''
         html = await self.account.client.get_order_info(order_id)
+        print(html)
         data = self.account.parser.parse_order_page(html)
+        print(data)
         order = Order(status=data['status'], review=data['review'])
         return order
 
@@ -33,12 +35,12 @@ class OrderManager:
             FunPayRefundError: Не удалось сделать возврат.  
         
         '''
-        if not self.account.csrf_token:
+        if not self.account._csrf_token:
             await self.account.profile.get_user_data()
-        response = await self.account.client.refund_order(self.account.csrf_token, order_id)
+        response = await self.account.client.refund_order(self.account._csrf_token, order_id)
         if response.status_code == 200:
             s = await self.get_order_details(order_id)
             status = s.status
-            if status == 'Возврат':
+            if 'Возврат' in status:
                 return True
-            raise FunPayRefundError(f'Cant make refund. Now order status is: {status}')
+            raise FunPayRefundError(f'Невозможно сделать возврат, текущий статус: {status}')
