@@ -37,14 +37,16 @@ class ReviewManager:
         Raises:
             AnswerReviewError: При ошибке (ответ не совпадает заданному/сервер не вернул ничего).
         '''
-        if not self.account.user_id or not self.account._csrf_token:
+        if self.account.user_id is None:
             await self.account.profile.get_user_data()
-        r = await self.account.client.answer_review(self.account.user_id, text, self.account._csrf_token, order_id)
+        r = await self.account.client.answer_review(self.account.user_id, text, order_id)
         try:
             response = r.json()
         except json.JSONDecodeError:
             raise AnswerReviewError(message='Сервер не вернул ничего')
-        if text in response['content']:
-            return True
-        raise AnswerReviewError(message='Ответ не сохранился')
-        
+        try:
+            if text in response['content']:
+                return True
+            raise AnswerReviewError(message='Ответ не сохранился')
+        except Exception as e:
+            raise AnswerReviewError(message=response.get('msg') if response.get('msg') else response)

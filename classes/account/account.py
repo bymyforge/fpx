@@ -8,6 +8,7 @@ from classes.account.subclasses.order import OrderManager
 from classes.account.subclasses.lot import LotManager
 from classes.account.subclasses.editor import FunPayEditor
 from classes.account.subclasses.review import ReviewManager
+from middlewares.request_engine import RequestEngine
 
 class Account:
     '''
@@ -15,7 +16,8 @@ class Account:
     '''
     def __init__(self, client):
         self.http_client = client
-        self.client = FunPayClient(self.http_client)
+        self.client = FunPayClient(self, self.http_client)
+        self._request_engine = RequestEngine(self, self.http_client)
         self.parser = FunPayParser()
         self.user_id = None
         self._csrf_token = None

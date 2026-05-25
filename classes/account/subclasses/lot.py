@@ -72,7 +72,7 @@ class LotManager:
             response = []
             for node_id in category_list:
                 game_id = await self.account.addons.get_game_id(node_id)
-                response.append(await self.account.client.raise_lot(node_id, game_id, self.account._csrf_token))
+                response.append(await self.account.client.raise_lot(node_id, game_id))
             return response
         except Exception as e:
-            raise RaisingLotError()
+            raise RaisingLotError(message=e)

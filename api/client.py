@@ -3,18 +3,19 @@ import json
 
 
 class FunPayClient:
-    def __init__(self, http_client):
+    def __init__(self, account, http_client):
+        self._account = account
         self.client = http_client
 
     async def get_chats_page(self) -> str:
-        r = await self.client.get('/chat/')
+        r = await self._account._request_engine.execute('GET', '/chat/')
         return r.text
 
     async def get_finance_page(self) -> str:
-        r = await self.client.get('/account/balance')
+        r = await self._account._request_engine.execute('GET', '/account/balance')
         return r.text
 
-    async def send_message_request(self, node_name, last_msg, text, csrf_token):
+    async def send_message_request(self, node_name, last_msg, text):
         request_data = {
         "action": "chat_message",
         "data": {
@@ -24,44 +25,40 @@ class FunPayClient:
         }
     }
         payload = {
-            'request': json.dumps(request_data),
-            'csrf_token': csrf_token
+            'request': json.dumps(request_data)
         }
         headers = {
         "X-Requested-With": "XMLHttpRequest",
-        "X-Cp-Csrf-Token": csrf_token,
         "Referer": f"https://funpay.com/chat/?node={node_name.split('-')[-1]}"
     }
-        r = await self.client.post('/runner/', data=payload, headers=headers)
+        r = await self._account._request_engine.execute('POST', '/runner/', data=payload, headers=headers)
         return r.json()
 
     async def get_current_chat(self, chat_id):
-        r = await self.client.get(f'/chat/?node={chat_id}')
+        r = await self._account._request_engine.execute('GET', f'/chat/?node={chat_id}')
         return r.text
 
     async def get_user_profile(self, user_id):
-        r = await self.client.get(f'/users/{user_id}/')
+        r = await self._account._request_engine.execute('GET', f'/users/{user_id}/')
         return r.text
 
     async def lot_menu_by_category(self, category_id):
-        r = await self.client.get(f'/lots/{category_id}/trade')
+        r = await self._account._request_engine.execute('GET', f'/lots/{category_id}/trade')
         return r.text
 
     async def get_main_menu(self):
-        r = await self.client.get('/')
+        r = await self._account._request_engine.execute('GET', '/')
         return r.text
 
-    async def raise_lot(self, node_id, game_id, csrf_token):
+    async def raise_lot(self, node_id, game_id):
         payload = {
             'game_id': game_id,
-            'node_id': node_id,
-            'csrf_token': csrf_token
+            'node_id': node_id
         }
         headers = {
-            "X-Requested-With": "XMLHttpRequest",
-            "X-Cp-Csrf-Token": csrf_token
+            "X-Requested-With": "XMLHttpRequest"
         }
-        r = await self.client.post('/lots/raise', data=payload, headers=headers)
+        r = await self._account._request_engine.execute('POST', '/lots/raise', data=payload, headers=headers)
         if "application/json" in r.headers.get("Content-Type", ""):
             response = r.json()
             return response.get('msg')
@@ -69,33 +66,31 @@ class FunPayClient:
             return {"error": "not_json", "status": r.status_code}
             
     async def get_lot_info(self, lot_id):
-        r = await self.client.get(f'/lots/offer?id={lot_id}')
+        r = await self._account._request_engine.execute('GET', f'/lots/offer?id={lot_id}')
         return r.text
 
     async def get_my_sells(self):
-        r = await self.client.get('/orders/trade')
+        r = await self._account._request_engine.execute('GET', '/orders/trade')
         return r.text
 
     async def refund_order(self, csrf_token, order_id):
         url = f'/orders/refund'
         payload = {
-            'csrf_token': csrf_token,
             'id': order_id
         }
-        r = await self.client.post(url, data=payload)
+        r = await self._account._request_engine.execute('POST', url, data=payload)
         return r
 
     async def get_order_info(self, order_id):
-        r = await self.client.get(f'/orders/{order_id}/')
+        r = await self._account._request_engine.execute('GET', f'/orders/{order_id}/')
         return r.text
 
     async def get_lot_editor_data(self, lot_id):
-        r = await self.client.get(f'/lots/offerEdit?offer={lot_id}')
+        r = await self._account._request_engine.execute('GET', f'/lots/offerEdit?offer={lot_id}')
         return r.text
 
     async def edit_lot(self, lot, active=None):
         payload = {
-            'csrf_token': lot.csrf_token,
             'form_created_at': lot.form_created_at,
             'offer_id': lot.offer_id,
             'node_id': lot.node_id,
@@ -108,20 +103,18 @@ class FunPayClient:
         payload.update(lot.fields)
         if active:
             payload['active'] = 'on'
-        r = await self.client.post('/lots/offerSave', data=payload)
+        r = await self._account._request_engine.execute('POST', '/lots/offerSave', data=payload)
         return r
 
-    async def answer_review(self, authorid: str, text: str, csrf_token: str, orderid: str):
+    async def answer_review(self, authorid: str, text: str, orderid: str):
         payload = {
             'authorId': authorid,
             'text': text,
             'rating': '',
-            'csrf_token': csrf_token,
             'orderId': orderid
         }
         headers = {
-            "X-Requested-With": "XMLHttpRequest",
-            "X-Cp-Csrf-Token": csrf_token
+            "X-Requested-With": "XMLHttpRequest"
         }
-        response = await self.client.post('/orders/review', data=payload, headers=headers)
+        response = await self._account._request_engine.execute('POST', '/orders/review', data=payload, headers=headers)
         return response

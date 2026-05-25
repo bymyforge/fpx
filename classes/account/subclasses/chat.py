@@ -40,7 +40,7 @@ class ChatManager:
         """
         if chat_id not in self.account._node_names or not self.account._csrf_token:
             await self.get_chat_data(chat_id)
-        response = await self.account.client.send_message_request(self.account._node_names[chat_id], -1, text, self.account._csrf_token)
+        response = await self.account.client.send_message_request(self.account._node_names[chat_id], -1, text)
         inner_response = response.get('response', {})
         if inner_response.get('error') is None:
             return True
