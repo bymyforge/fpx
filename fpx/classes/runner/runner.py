@@ -63,6 +63,8 @@ class Runner:
             await self._order._update_order_cache()
             await self._review._update_review_cache()
         self._cache_is_updated = True
+        for handler in self.handler._handlers['startup']:
+            asyncio.create_task(handler())
 
     async def _cache_runner(self):
         '''Управляет кешем'''

@@ -7,6 +7,7 @@ class RequestEngine:
     def __init__(self, account, client: httpx.AsyncClient):
         self._account = account
         self._client = client
+        self.runner = None
 
     async def execute(self, method: str, url: str, **kwargs):
         attemts = 3
@@ -29,6 +30,9 @@ class RequestEngine:
                 if response.status_code == 429:
                     sleep_time = int(response.headers.get('Retry-After', 5))
                     await asyncio.sleep(sleep_time)
+                    if self.runner:
+                        for handler in self.runner.handler._handlers['flood']:
+                            asyncio.create_task(handler(sleep_time))
                     continue
                 # если чето сервер не ответил
                 if response.status_code in (502, 503, 504):

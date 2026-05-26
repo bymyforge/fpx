@@ -9,7 +9,11 @@ class Router:
             'confirmed_order': [],
             'new_order': [],
             'refund': [],
-            'review': []
+            'review': [],
+
+            # системные
+            'startup': [],
+            'flood': []
         }
         
     def on_message(self):
@@ -51,5 +55,19 @@ class Router:
         '''Декоратор отслеживает возвраты заказов'''
         def decorator(func):
             self._handlers['refund'].append(func)
+            return func
+        return decorator
+
+    def on_startup(self):
+        '''Декоратор отслеживает запуск раннера'''
+        def decorator(func):
+            self._handlers['startup'].append(func)
+            return func
+        return decorator
+
+    def on_flood(self):
+        '''Декоратор отслеживает флуд в системе'''
+        def decorator(func):
+            self._handlers['flood'].append(func)
             return func
         return decorator
