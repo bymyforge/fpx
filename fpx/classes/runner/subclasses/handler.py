@@ -1,4 +1,4 @@
-from classes.runner.subclasses.router import Router
+from fpx.classes.runner.subclasses.router import Router
 
 
 class Handlers(Router):

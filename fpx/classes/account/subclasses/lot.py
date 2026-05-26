@@ -1,5 +1,5 @@
-from models.lots import LotEditor, CurrentLotInfo
-from utils.errors import NullData, RaisingLotError
+from fpx.models.lots import LotEditor, CurrentLotInfo
+from fpx.utils.errors import NullData, RaisingLotError
 
 
 class LotManager:

@@ -1,5 +1,5 @@
-from models.chat import ChatData
-from utils.errors import MessageNotDelivered
+from fpx.models.chat import ChatData
+from fpx.utils.errors import MessageNotDelivered
 
 class ChatManager:
     def __init__(self, account):

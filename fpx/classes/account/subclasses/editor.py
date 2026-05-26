@@ -1,4 +1,4 @@
-from utils.errors import RequestError, LotEditingError
+from fpx.utils.errors import RequestError, LotEditingError
 
 
 class FunPayEditor:

@@ -2,12 +2,12 @@ import asyncio
 import httpx
 from types import SimpleNamespace
 
-from utils.errors import CriticalRunnerError
-from classes.runner.subclasses.chat import ChatRunner
-from classes.runner.subclasses.order import OrderRunner
-from classes.runner.subclasses.review import ReviewRunner
-from classes.runner.subclasses.router import Router
-from classes.runner.subclasses.handler import Handlers
+from fpx.utils.errors import CriticalRunnerError
+from fpx.classes.runner.subclasses.chat import ChatRunner
+from fpx.classes.runner.subclasses.order import OrderRunner
+from fpx.classes.runner.subclasses.review import ReviewRunner
+from fpx.classes.runner.subclasses.router import Router
+from fpx.classes.runner.subclasses.handler import Handlers
 
 class Runner:
     def __init__(self, account):

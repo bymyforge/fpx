@@ -1,7 +1,7 @@
 import httpx
 
-from classes.account.account import Account
-from classes.runner.runner import Runner
+from fpx.classes.account.account import Account
+from fpx.classes.runner.runner import Runner
 
 class FunPayTools:
     def __init__(self, gkey):

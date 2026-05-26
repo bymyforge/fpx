@@ -1,7 +1,7 @@
 import httpx
 import asyncio
 
-from utils.errors import RequestError
+from fpx.utils.errors import RequestError
 
 class RequestEngine:
     def __init__(self, account, client: httpx.AsyncClient):

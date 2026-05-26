@@ -1,5 +1,5 @@
-from models.account import Order
-from utils.errors import FunPayRefundError
+from fpx.models.account import Order
+from fpx.utils.errors import FunPayRefundError
 
 class OrderManager:
     def __init__(self, account):

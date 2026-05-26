@@ -2,9 +2,9 @@
 import json
 from bs4 import BeautifulSoup
 
-from models.chat import Chat
-from models.account import Balance
-from utils.errors import NullData, ParseException
+from fpx.models.chat import Chat
+from fpx.models.account import Balance
+from fpx.utils.errors import NullData, ParseException
 
 class FunPayParser:
     @staticmethod

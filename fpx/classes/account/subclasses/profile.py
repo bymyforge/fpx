@@ -1,5 +1,5 @@
-from models.account import UserData, Order, Profile, CurReview
-from models.lots import LotInfo
+from fpx.models.account import UserData, Order, Profile, CurReview
+from fpx.models.lots import LotInfo
 
 
 class ProfileManager:

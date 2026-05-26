@@ -1,7 +1,7 @@
 import json
 
-from models.account import Review
-from utils.errors import AnswerReviewError
+from fpx.models.account import Review
+from fpx.utils.errors import AnswerReviewError
 
 
 class ReviewManager:
