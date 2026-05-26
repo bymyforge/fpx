@@ -6,6 +6,7 @@ from utils.errors import CriticalRunnerError
 from classes.runner.subclasses.chat import ChatRunner
 from classes.runner.subclasses.order import OrderRunner
 from classes.runner.subclasses.review import ReviewRunner
+from classes.runner.subclasses.router import Router
 from classes.runner.subclasses.handler import Handlers
 
 class Runner:
@@ -14,7 +15,7 @@ class Runner:
         self._chat = ChatRunner(self)
         self._order = OrderRunner(self)
         self._review = ReviewRunner(self)
-        self._handler = Handlers(self)
+        self.handler = Handlers(self)
         self._cache = {
             'msgs': [],
             'old_msgs': [],
@@ -24,14 +25,6 @@ class Runner:
             'old_reviews': []
         }
         self._cache_is_updated = False
-        self._handlers = {
-            'message': [],
-            'order': [],
-            'confirmed_order': [],
-            'new_order': [],
-            'refund': [],
-            'review': []
-        }
 
     async def idle(self):
         """

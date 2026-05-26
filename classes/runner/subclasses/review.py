@@ -26,5 +26,5 @@ class ReviewRunner:
         await self.runner._review._update_review_cache()
         reviews = await self.runner._review._compare_review_cache()
         if reviews:
-            for handler in self.runner._handlers['review']:
+            for handler in self.runner.handler._handlers['review']:
                 await handler(reviews)

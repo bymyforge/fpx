@@ -40,14 +40,14 @@ class OrderRunner:
         orders = await self.runner._order._compare_order_cache()
         if orders:
             for order in orders:
-                for handler in self.runner._handlers['order']:
+                for handler in self.runner.handler._handlers['order']:
                     await handler(order)
                 if order['status'] == 'Закрыт':
-                    for handler in self.runner._handlers['confirmed_order']:
+                    for handler in self.runner.handler._handlers['confirmed_order']:
                         await handler(order)
                 elif order['status'] in('Оплачено', 'Оплачен'):
-                    for handler in self.runner._handlers['new_order']:
+                    for handler in self.runner.handler._handlers['new_order']:
                         await handler(order)
                 elif order['status'] == 'Возврат':
-                    for handler in self.runner._handlers['refund']:
+                    for handler in self.runner.handler._handlers['refund']:
                         await handler(order)

@@ -39,5 +39,5 @@ class ChatRunner:
         await self.runner._chat._update_chat_cache()
         chats = await self.runner._chat._compare_chat_cache()
         if chats:
-            for handler in self.runner._handlers['message']:
+            for handler in self.runner.handler._handlers['message']:
                 await handler(chats)

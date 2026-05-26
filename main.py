@@ -18,4 +18,4 @@ class FunPayTools:
         )
         self.account = Account(self.client)
         self.runner = Runner(self.account)
-        self.handler = self.runner._handler
+        self.handler = self.runner.handler
