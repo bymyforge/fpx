@@ -1,4 +1,4 @@
-
+from fpx.models.account import Order
 
 
 class OrderRunner:
@@ -13,8 +13,8 @@ class OrderRunner:
         result = []
         for order in orders:
             o = {
-                'id': order.order_id,
-                'time': order.order_time,
+                'order_id': order.order_id,
+                'order_time': order.order_time,
                 'client_name': order.client_name,
                 'price': order.price,
                 'name': order.name,
@@ -32,7 +32,7 @@ class OrderRunner:
         if self.runner._cache['orders'] != self.runner._cache['old_orders']:
             for order in self.runner._cache['orders']:
                 if order not in self.runner._cache['old_orders']:
-                    result.append(order)
+                    result.append(Order(**order))
         return result
 
     async def _check_orders(self):
@@ -42,12 +42,12 @@ class OrderRunner:
             for order in orders:
                 for handler in self.runner.handler._handlers['order']:
                     await handler(order)
-                if order['status'] == 'Закрыт':
+                if order.status == 'Закрыт':
                     for handler in self.runner.handler._handlers['confirmed_order']:
                         await handler(order)
-                elif order['status'] in('Оплачено', 'Оплачен'):
+                elif order.status in('Оплачено', 'Оплачен'):
                     for handler in self.runner.handler._handlers['new_order']:
                         await handler(order)
-                elif order['status'] == 'Возврат':
+                elif order.status == 'Возврат':
                     for handler in self.runner.handler._handlers['refund']:
                         await handler(order)

@@ -1,4 +1,4 @@
-
+from fpx.models.chat import Message
 
 
 class ChatRunner:
@@ -16,7 +16,7 @@ class ChatRunner:
                     stop_words = ('оплатил заказ', 'можете перейти в discord', 'написал отзыв', 'изменил отзыв', 'вернул деньги', 'подтвердил успешное выполнение')
                     msg_lower = message['last_msg'].lower()
                     if not any(word in msg_lower for word in stop_words):
-                        result.append(message)
+                        result.append(Message(**message))
         return result
 
     async def _update_chat_cache(self):
@@ -29,7 +29,7 @@ class ChatRunner:
         for chat in chats:
             if counter > 30:
                 break
-            chat = {'sender': chat.username, 'id': chat.id, 'last_msg': chat.last_msg}
+            chat = {'sender': chat.username, 'chat_id': chat.id, 'last_msg': chat.last_msg}
             result.append(chat)
             counter += 1
         self.runner._cache['old_msgs'] = self.runner._cache['msgs']

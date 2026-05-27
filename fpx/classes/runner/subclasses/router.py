@@ -17,42 +17,102 @@ class Router:
         }
         
     def on_message(self):
-        '''Декоратор возвращает новые сообщения'''
+        '''Декоратор отслеживает новые сообщения.
+
+        Returns:
+            Message: Объект, содержащий:    
+                - sender (str): Имя отправителя     
+                - chat_id (str): Айди чата (node id)    
+                - last_msg (str): Сообщение, которое было отправлено в этом чате    
+        '''
         def decorator(func):
             self._handlers['message'].append(func)
             return func
         return decorator
 
     def on_orders(self):
-        '''Декоратор возвращает все события заказов'''
+        '''
+        Декоратор отслеживает все события заказов.
+        Не рекомендуется использовать вместе с on_cofirmed_orders, on_new_order, on_refunded_orders во избежание дублирования событий.
+
+        Returns:
+            Order: Объект, содержащий:      
+                - order_id (str): Уникальный ID заказа          
+                - order_time (str): Время оплаты заказа     
+                - client_name (str): Имя клиента
+                - price (str): Цена товара     
+                - status (str): Статус заказа   
+                - name (str): Название товара   
+        '''
         def decorator(func):
             self._handlers['order'].append(func)
             return func
         return decorator
     
     def on_confirmed_orders(self):
-        '''Декоратор, который возвращает только событие заказ подтверждён'''
+        '''
+        Декоратор, который отслеживает только событие подтверждёния заказа.
+
+        Returns:
+            Order: Объект, содержащий:      
+                - order_id (str): Уникальный ID заказа          
+                - order_time (str): Время оплаты заказа     
+                - client_name (str): Имя клиента
+                - price (str): Цена товара     
+                - status (str): Статус заказа   
+                - name (str): Название товара   
+        '''
         def decorator(func):
             self._handlers['confirmed_order'].append(func)
             return func
         return decorator
 
     def on_new_order(self):
-        '''Декоратор, который возвращает только события новый заказ'''
+        '''
+        Декоратор, который отслеживает только новые заказы.
+
+        Returns:
+            Order: Объект, содержащий:      
+                - order_id (str): Уникальный ID заказа          
+                - order_time (str): Время оплаты заказа     
+                - client_name (str): Имя клиента
+                - price (str): Цена товара     
+                - status (str): Статус заказа   
+                - name (str): Название товара   
+        '''
         def decorator(func):
             self._handlers['new_order'].append(func)
             return func
         return decorator
     
     def on_new_review(self):
-        '''Декоратор отслеживает новые отзывы'''
+        '''Декоратор отслеживает новые отзывы.
+
+        Returns:
+            CurReview: Объект, содержащий:        
+                - text (str): Текст отзыва  
+                - stars (int): Кол-во звёзд, оставленных под отзывом
+                - author (str): Автор отзыва    
+                - item_name (str): Заказ, под которым оставлен отзыв        
+        '''
         def decorator(func):
             self._handlers['review'].append(func)
             return func
         return decorator
 
     def on_refunded_orders(self):
-        '''Декоратор отслеживает возвраты заказов'''
+        '''
+        Декоратор отслеживает события возврата заказов.
+
+        Returns:
+            Order: Объект, содержащий:      
+                - order_id (str): Уникальный ID заказа          
+                - order_time (str): Время оплаты заказа     
+                - client_name (str): Имя клиента
+                - price (str): Цена товара     
+                - status (str): Статус заказа   
+                - name (str): Название товара   
+        '''
         def decorator(func):
             self._handlers['refund'].append(func)
             return func

@@ -29,11 +29,11 @@ class RequestEngine:
                 # флуд контрль
                 if response.status_code == 429:
                     sleep_time = int(response.headers.get('Retry-After', 5))
-                    await asyncio.sleep(sleep_time)
                     if self.runner:
                         for handler in self.runner.handler._handlers['flood']:
                             asyncio.create_task(handler(sleep_time))
-                    continue
+                    await asyncio.sleep(sleep_time)
+                    return await self.execute(method, url, **kwargs)
                 # если чето сервер не ответил
                 if response.status_code in (502, 503, 504):
                     sleep_time = backoff ** attemt
@@ -49,3 +49,4 @@ class RequestEngine:
             except (httpx.ConnectTimeout, httpx.ConnectError) as e:
                 if attemt == attemts - 1: raise e
                 await asyncio.sleep(backoff ** attemt)
+        raise RequestError(message=f"Превышено количество попыток запроса к {url}")
