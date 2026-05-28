@@ -50,6 +50,25 @@ class FunPayParser:
         try:
             result = {}
             chat_div = soup.find('div', class_='chat')
+            chats = soup.find_all('div', class_='chat-msg-item chat-msg-with-head')
+            if chats:
+                chat = chats[-1]
+                res = {}
+                res['is_system'] = False
+                res['message'] = chat.find('div', class_='chat-msg-text').get_text(separator='\n').strip()
+                author = chat.find('a', class_='chat-msg-author-link')
+                if not author:
+                    res['sender'] = chat.find('span', class_='chat-msg-author-label')
+                    if res['sender']:
+                        res['sender'] = res['sender'].get_text(strip=True)
+                        if res['sender'] == 'оповещение':
+                            res['sender'] = 'FunPay'
+                            res['is_system'] = True
+                else:
+                    res['sender'] = author.get_text(strip=True)
+                result['last_message'] = res
+            else:
+                result['last_message'] = None
             if chat_div:
                 result['data-name'] = chat_div.get('data-name', '')
             else:

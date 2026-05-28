@@ -16,7 +16,7 @@ class ChatRunner:
                     stop_words = ('оплатил заказ', 'можете перейти в discord', 'написал отзыв', 'изменил отзыв', 'вернул деньги', 'подтвердил успешное выполнение')
                     msg_lower = message['last_msg'].lower()
                     if not any(word in msg_lower for word in stop_words):
-                        result.append(Message(**message))
+                        result.append(Message(sender=message['sender'], chat_id=message['chat_id'], last_msg=message['last_msg'], is_system=False))
         return result
 
     async def _update_chat_cache(self):
@@ -39,5 +39,9 @@ class ChatRunner:
         await self.runner._chat._update_chat_cache()
         chats = await self.runner._chat._compare_chat_cache()
         if chats:
-            for handler in self.runner.handler._handlers['message']:
-                await handler(chats)
+            for chat in chats:
+                msg_obj = await self.runner._account.chat.get_chat_data(chat.chat_id)
+                message = msg_obj.last_message
+                chat = Message(sender=message['sender'], chat_id=chat.chat_id, last_msg=chat.last_msg, is_system=message['is_system'])                   
+                for handler in self.runner.handler._handlers['message']:
+                    await handler(chat)

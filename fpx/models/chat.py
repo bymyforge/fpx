@@ -23,9 +23,11 @@ class ChatData:
     node_name: str
     csrf_token: str
     user_id: str
+    last_message: list
 
 @dataclass
 class Message:
     sender: str
     chat_id: str
     last_msg: str
+    is_system: bool

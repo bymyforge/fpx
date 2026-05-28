@@ -58,12 +58,17 @@ class ChatManager:
         Returns:
             ChatData: Объект с тех. данными чата:   
                 - node_name (str): Полный ID переписки, нужный для отправки сообщения (users-8778502-19903068)  
-                - csrf_token (str): Нужен для post запросов, сохраняется в кеш self.account.csrf_token  
-                - user_id (str): твой ID    
+                - csrf_token (str): Нужен для post запросов, сохраняется в кеш self.account._csrf_token  
+                - user_id (str): твой ID     
+                - last_message (list): Словарь, содержащий последнее сообщение в чате:       
+                    - is_system (bool): Системное ли сообщение      
+                    - sender (str): Отправитель сообщения   
+                    - message (str): Текст сообщения    
+                
         '''
         html = await self.account.client.get_current_chat(chat_id)
         data = self.account.parser.parse_chat(html)
-        chat = ChatData(node_name=data['data-name'], csrf_token=data['csrf-token'], user_id=data['user-id'])
+        chat = ChatData(node_name=data['data-name'], csrf_token=data['csrf-token'], user_id=data['user-id'], last_message=data['last_message'])
         self.account._node_names[chat_id] = chat.node_name
         self.account._csrf_token = chat.csrf_token
         self.account.user_id = chat.user_id
