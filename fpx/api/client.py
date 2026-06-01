@@ -1,5 +1,5 @@
 import json
-
+import urllib.parse
 
 
 class FunPayClient:
@@ -98,9 +98,18 @@ class FunPayClient:
             'deleted': lot.deleted,
         }
         payload.update(lot.fields)
-        if active:
-            payload['active'] = 'on'
-        r = await self._account._request_engine.execute('POST', '/lots/offerSave', data=payload)
+        payload.pop('query', None)
+        if active is not None:
+            if active:
+                payload['active'] = 'on'
+            else:
+                payload.pop('active', None)
+        headers = {
+            'Accept': 'application/json, text/javascript, */*; q=0.01',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Referer': f'https://funpay.com/lots/offerEdit?node={lot.node_id}&offer={lot.offer_id}&location=offer',
+        }
+        r = await self._account._request_engine.execute('POST', '/lots/offerSave', data=payload, headers=headers)
         return r
 
     async def answer_review(self, authorid: str, text: str, orderid: str):
