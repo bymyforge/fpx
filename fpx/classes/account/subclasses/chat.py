@@ -1,5 +1,5 @@
 from fpx.models.chat import ChatData
-from fpx.utils.errors import MessageNotDelivered
+from fpx.utils import errors as fpx_err
 
 class ChatManager:
     def __init__(self, account):
@@ -45,8 +45,8 @@ class ChatManager:
         if inner_response.get('error') is None:
             return True
         else:
-            error_msg = inner_response.get('error', 'Unknown error')
-            raise MessageNotDelivered(f'Server returned a error: {error_msg}')
+            error_msg = inner_response.get('error', 'Неизвестная ошибка')
+            raise fpx_err.FpxMessageDeliverError(f'Сервер вернул ошибку: {error_msg}')
 
     async def get_chat_data(self, chat_id):
         '''

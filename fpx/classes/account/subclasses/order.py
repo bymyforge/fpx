@@ -1,5 +1,5 @@
 from fpx.models.account import Order
-from fpx.utils.errors import FunPayRefundError
+from fpx.utils import errors as fpx_err
 
 class OrderManager:
     def __init__(self, account):
@@ -17,9 +17,7 @@ class OrderManager:
                 - review (dict): Словарь с данными отзыва, который оставили к заказу.  
         '''
         html = await self.account.client.get_order_info(order_id)
-        print(html)
         data = self.account.parser.parse_order_page(html)
-        print(data)
         order = Order(status=data['status'], review=data['review'])
         return order
 
@@ -32,7 +30,7 @@ class OrderManager:
         Returns:
             bool: True если возврат прошёл успешно. 
         Raises:
-            FunPayRefundError: Не удалось сделать возврат.  
+            FpxRefundError: Не удалось сделать возврат.  
         
         '''
         if not self.account._csrf_token:
@@ -43,4 +41,4 @@ class OrderManager:
             status = s.status
             if 'Возврат' in status:
                 return True
-            raise FunPayRefundError(f'Невозможно сделать возврат, текущий статус: {status}')
+            raise fpx_err.FpxRefundError(f'Невозможно сделать возврат, текущий статус: {status}')

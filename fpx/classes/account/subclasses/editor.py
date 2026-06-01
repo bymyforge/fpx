@@ -1,4 +1,4 @@
-from fpx.utils.errors import RequestError, LotEditingError
+from fpx.utils import errors as fpx_err
 
 
 class FunPayEditor:
@@ -15,8 +15,8 @@ class FunPayEditor:
         Returns:
             bool: True - цена изменилась.
         Raises:
-            LotEditingError: Цена не изменилась 
-            RequestError: Плохое соединение с интернетом/сервер не ответил
+            FpxLotEditingError: Цена не изменилась 
+            FpxRequestError: Плохое соединение с интернетом/сервер не ответил
         '''
         lot = await self.account.lot._get_lot_editor_details(lot_id)
         lot.fields['price'] = new_price
@@ -25,8 +25,8 @@ class FunPayEditor:
             new_lot = await self.account.lot._get_lot_editor_details(lot_id)
             if new_lot.fields['price'] == lot.fields['price']:
                 return True
-            raise LotEditingError('Changing lot price error')
-        raise RequestError()
+            raise fpx_err.FpxLotEditingError('Ошибка изменения цены лота')
+        raise fpx_err.FpxRequestError(f'Ошибка отправки запроса на изменение деталей лота. Ответ: {response}')
 
     async def toggle_off_lot(self, lot_id):
         '''
@@ -37,13 +37,13 @@ class FunPayEditor:
         Returns:
             bool: True - лот выключен
         Raises:
-            RequestError: Сервер не ответил
+            FpxRequestError: Сервер не ответил
         '''
         lot = await self.account.lot._get_lot_editor_details(lot_id)
         response = await self.account.client.edit_lot(lot)
         if response.status_code == 200:
             return True
-        raise RequestError()
+        raise fpx_err.FpxRequestError('Ошибка отправки запроса на изменение деталей лота')
 
     async def toggle_on_lot(self, lot_id):
         '''
@@ -60,4 +60,4 @@ class FunPayEditor:
         response = await self.account.client.edit_lot(lot, active=True)
         if response.status_code == 200:
             return True
-        raise RequestError()
+        raise fpx_err.FpxRequestError('Ошибка отправки запроса на изменение деталей лота')

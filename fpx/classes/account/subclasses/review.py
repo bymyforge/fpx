@@ -1,7 +1,7 @@
 import json
 
 from fpx.models.account import Review
-from fpx.utils.errors import AnswerReviewError
+from fpx.utils import errors as fpx_err
 
 
 class ReviewManager:
@@ -35,7 +35,7 @@ class ReviewManager:
         Returns:
             bool: True при успехе
         Raises:
-            AnswerReviewError: При ошибке (ответ не совпадает заданному/сервер не вернул ничего).
+            FpxAnswerReviewError: При ошибке (ответ не совпадает заданному/сервер не вернул ничего).
         '''
         if self.account.user_id is None:
             await self.account.profile.get_user_data()
@@ -43,10 +43,10 @@ class ReviewManager:
         try:
             response = r.json()
         except json.JSONDecodeError:
-            raise AnswerReviewError(message='Сервер не вернул ничего')
+            raise fpx_err.FpxAnswerReviewError('Сервер не вернул ничего')
         try:
             if text in response['content']:
                 return True
-            raise AnswerReviewError(message='Ответ не сохранился')
+            raise fpx_err.FpxAnswerReviewError(message='Ответ не сохранился')
         except Exception as e:
-            raise AnswerReviewError(message=response.get('msg') if response.get('msg') else response)
+            raise fpx_err.FpxAnswerReviewError(message=response.get('msg') if response.get('msg') else response)

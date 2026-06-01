@@ -94,11 +94,8 @@ class FunPayClient:
             'form_created_at': lot.form_created_at,
             'offer_id': lot.offer_id,
             'node_id': lot.node_id,
-            'location': lot.location,
+            'location': lot.location if lot.location else 'offer',
             'deleted': lot.deleted,
-#            'secrets': lot.secrets,
-#            'price': lot.price,
-#            'amount': lot.amount
         }
         payload.update(lot.fields)
         if active:

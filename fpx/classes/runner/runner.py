@@ -2,7 +2,8 @@ import asyncio
 import httpx
 from types import SimpleNamespace
 
-from fpx.utils.errors import CriticalRunnerError
+from fpx.utils import errors as fpx_err
+
 from fpx.classes.runner.subclasses.chat import ChatRunner
 from fpx.classes.runner.subclasses.order import OrderRunner
 from fpx.classes.runner.subclasses.review import ReviewRunner
@@ -38,10 +39,12 @@ class Runner:
             try:
                 await self._cache_runner()
                 await asyncio.sleep(timer)
+            except fpx_err.FpxRequestError:
+                await asyncio.sleep(60)
             except (httpx.ConnectTimeout, httpx.RemoteProtocolError, httpx.ReadTimeout, httpx.ConnectError):
                 await asyncio.sleep(timer)
             except Exception as e:
-                raise CriticalRunnerError(message=str(e))
+                raise fpx_err.FpxCriticalRunnerError(message=str(e))
 
     async def runner_polling(self, timer, is_background:bool=False):
         '''

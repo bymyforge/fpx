@@ -1,5 +1,5 @@
 from fpx.models.lots import LotEditor, CurrentLotInfo
-from fpx.utils.errors import NullData, RaisingLotError
+from fpx.utils import errors as fpx_err
 
 
 class LotManager:
@@ -68,7 +68,7 @@ class LotManager:
             profile = await self.account.profile.profile()
             category_list = profile.category_ids
             if not category_list:
-                raise NullData('I cant raise none')
+                raise fpx_err.FpxRaisingLotError('Нам нечего поднимать!')
             response = []
             for node_id in category_list:
                 game_id = await self.account.addons.get_game_id(node_id)
