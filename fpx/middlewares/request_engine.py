@@ -45,8 +45,8 @@ class RequestEngine:
                     if attemt == attemts - 1: raise e
                     await asyncio.sleep(backoff ** attemt)
                 else:
-                    raise RequestError(message=f'POST запрос упал по таймауту ответа. Возможно действие выполнилось: {e}')
+                    raise fpx_err.FpxRequestError(message=f'POST запрос упал по таймауту ответа. Возможно действие выполнилось: {e}')
             except (httpx.ConnectTimeout, httpx.ConnectError) as e:
                 if attemt == attemts - 1: raise e
                 await asyncio.sleep(backoff ** attemt)
-        raise RequestError(message=f"Превышено количество попыток запроса к {url}")
+        raise fpx_err.FpxRequestError(message=f"Превышено количество попыток запроса к {url}")

@@ -357,17 +357,49 @@ class FunPayParser:
     @staticmethod
     def parse_category_page(html_content):
         soup = BeautifulSoup(html_content, 'html.parser')
+        lowcoasters = {}
+        buttons = soup.select('div.lot-field-radio-box button')
+        filters = [btn.get('value').strip().lower() for btn in buttons if btn.get('value') and btn.get('value') != 'Все']
         lots = soup.select('a.tc-item:not(.offer-promo)')
         if not lots:
-            logger.debug('В категории не найдено лотов, возможно их нет или сайт недоступен')
-        result = {}
-        try:
-            lot = lots[0]
-            text_price = lot.find('div', class_='tc-price').get_text(strip=True)
-            result['price'] = float(''.join(c for c in text_price if c.isdigit() or c in '.,').replace(',', '.'))
-            result['offer_id'] = lot.get('href', '').split('=')[-1]
-        except Exception as e:
-            raise fpx_err.FpxParseError('Ошибка при парсинге категории')
-        if not result:
-            raise fpx_err.FpxParseError('У лота не найдено параметров')
-        return result
+            logger.debug('В категории не найдено лотов, возможно их просто нет или страница сломалась')
+            return []
+        if not filters:
+            try:
+                lot = lots[0]
+                lot_price = float(lot.find('div', class_='tc-price').get('data-s', 0))
+                if lot_price in(1.0, 0.0):
+                    lot_price = float(lot.select_one('.tc-price div').contents[0].strip())
+                username_el = lot.find('span', class_='pseudo-a') or lot.select_one('.media-user-name span')
+                owner_username = username_el.get_text(strip=True) if username_el else "Unknown"
+                url = lot.get('href', '')
+                offer_id = url.split('=')[-1] if '=' in url else url
+                return [{
+                        'filtration': 'все',
+                        'price': lot_price,
+                        'offer_id': offer_id,
+                        'owner_username': owner_username
+                    }]
+            except Exception:
+                raise fpx_err.FpxParseError('Не удалось распарсить категорию без фильтров.')
+        for lot in lots:
+            lot_f_values = [val.strip().lower() for key, val in lot.attrs.items() if key.startswith('data-f-')]
+            for f in filters:
+                if f in lot_f_values:
+                    try:
+                        lot_price = float(lot.find('div', class_='tc-price').get('data-s', 0))
+                        if f not in lowcoasters or lot_price < lowcoasters[f]['price']:
+                            username_el = lot.find('span', class_='pseudo-a') or lot.select_one('.media-user-name span')
+                            owner_username = username_el.get_text(strip=True) if username_el else "Unknown"
+                            url = lot.get('href', '')
+                            offer_id = url.split('=')[-1] if '=' in url else url
+                            lowcoasters[f] = {
+                                'filtration': f,
+                                'price': lot_price,
+                                'offer_id': offer_id,
+                                'owner_username': owner_username
+                            }
+                    except Exception:
+                        logger.debug('При парсинге конкретного лота в категории что-то пошло не так')
+                        continue
+        return list(lowcoasters.values())

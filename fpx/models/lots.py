@@ -24,5 +24,8 @@ class LotInfo:
 
 @dataclass
 class CategoryLastLot:
+    category_id: str
+    filtration: str
     price: float
     offer_id: str
+    owner_username: str

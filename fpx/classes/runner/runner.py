@@ -67,10 +67,14 @@ class Runner:
         else:
             await self._run_loop(timer, watch_lots, watch_chips)
 
-    async def _warm_up(self):
+    async def _warm_up(self, watch_lots, watch_chips):
         '''Прогрев кеша'''
         await self._account.profile.get_user_data()
         for _ in range(2):
+            if watch_lots:
+                await self._category._check_lot_categories(watch_lots)
+            if watch_chips:
+                await self._category._check_chip_categories(watch_chips)
             await self._chat._update_chat_cache()
             await self._order._update_order_cache()
             await self._review._update_review_cache()
@@ -81,7 +85,7 @@ class Runner:
     async def _cache_runner(self, watch_lots, watch_chips):
         '''Управляет кешем'''
         if not self._cache_is_updated:
-            await self._warm_up()
+            await self._warm_up(watch_lots, watch_chips)
             return
         if watch_lots:
             await self._category._check_lot_categories(watch_lots)
