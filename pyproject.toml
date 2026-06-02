@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fpx-engine"
+version = "0.1.1"
+authors = [
+  { name="Be My Code", email="gettofarmila@gmail.com" },
+]
+description = "Автоматизация работы с FunPay"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "httpx>=0.24.0",
+    "beautifulsoup4>=4.12.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/bymyforge/fpx"
