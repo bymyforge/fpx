@@ -353,3 +353,21 @@ class FunPayParser:
                 except Exception as e:
                     logger.debug(f'При парсинге конкретного текстового поля произошла ошибка: {e}')
         return result
+
+    @staticmethod
+    def parse_category_page(html_content):
+        soup = BeautifulSoup(html_content, 'html.parser')
+        lots = soup.select('a.tc-item:not(.offer-promo)')
+        if not lots:
+            logger.debug('В категории не найдено лотов, возможно их нет или сайт недоступен')
+        result = {}
+        try:
+            lot = lots[0]
+            text_price = lot.find('div', class_='tc-price').get_text(strip=True)
+            result['price'] = float(''.join(c for c in text_price if c.isdigit() or c in '.,').replace(',', '.'))
+            result['offer_id'] = lot.get('href', '').split('=')[-1]
+        except Exception as e:
+            raise fpx_err.FpxParseError('Ошибка при парсинге категории')
+        if not result:
+            raise fpx_err.FpxParseError('У лота не найдено параметров')
+        return result

@@ -124,3 +124,11 @@ class FunPayClient:
         }
         response = await self._account._request_engine.execute('POST', '/orders/review', data=payload, headers=headers)
         return response
+
+    async def get_chip_category(self, chip_category_id):
+        r = await self._account._request_engine.execute('GET', f'/chips/{chip_category_id}/')
+        return r.text
+    
+    async def get_lot_category(self, lot_category_id):
+        r = await self._account._request_engine.execute('GET', f'/lots/{lot_category_id}/')
+        return r.text

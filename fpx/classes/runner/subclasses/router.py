@@ -10,6 +10,8 @@ class Router:
             'new_order': [],
             'refund': [],
             'review': [],
+            'lot_category': [],
+            'chip_category': [],
 
             # системные
             'startup': [],
@@ -115,6 +117,34 @@ class Router:
         '''
         def decorator(func):
             self._handlers['refund'].append(func)
+            return func
+        return decorator
+
+    def on_lot_category(self):
+        '''
+        Декоратор отслеживает снижение цен на лоты.     
+
+        Returns:
+            CategoryLastLot: Объект, содержащий:        
+                - price (float): Цена лота      
+                - offer_id (str): Айди лота         
+        '''
+        def decorator(func):
+            self._handlers['lot_category'].append(func)
+            return func
+        return decorator
+
+    def on_chip_category(self):
+        '''
+        Декоратор отслеживает снижение цен на чипсах(коротких лотов под валюты).    
+
+        Returns:
+            CategoryLastLot: Объект, содержащий:    
+                - price (float): Цена лота      
+                - offer_id (str): Айди лота     
+        '''
+        def decorator(func):
+            self._handlers['chip_category'].append(func)
             return func
         return decorator
 

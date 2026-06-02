@@ -21,3 +21,8 @@ class LotEditor:
 class LotInfo:
     name: str
     id: str
+
+@dataclass
+class CategoryLastLot:
+    price: float
+    offer_id: str

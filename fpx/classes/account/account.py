@@ -8,6 +8,7 @@ from fpx.classes.account.subclasses.order import OrderManager
 from fpx.classes.account.subclasses.lot import LotManager
 from fpx.classes.account.subclasses.editor import FunPayEditor
 from fpx.classes.account.subclasses.review import ReviewManager
+from fpx.classes.account.subclasses.category import CategoryManager
 from fpx.middlewares.request_engine import RequestEngine
 
 class Account:
@@ -30,3 +31,4 @@ class Account:
         self.lot = LotManager(self)
         self.editor = FunPayEditor(self)
         self.review = ReviewManager(self)
+        self.category = CategoryManager(self)

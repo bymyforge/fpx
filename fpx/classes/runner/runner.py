@@ -7,6 +7,7 @@ from fpx.utils import errors as fpx_err
 from fpx.classes.runner.subclasses.chat import ChatRunner
 from fpx.classes.runner.subclasses.order import OrderRunner
 from fpx.classes.runner.subclasses.review import ReviewRunner
+from fpx.classes.runner.subclasses.category import CategoryRunner
 from fpx.classes.runner.subclasses.router import Router
 from fpx.classes.runner.subclasses.handler import Handlers
 
@@ -16,6 +17,7 @@ class Runner:
         self._chat = ChatRunner(self)
         self._order = OrderRunner(self)
         self._review = ReviewRunner(self)
+        self._category = CategoryRunner(self)
         self.handler = Handlers(self)
         self._cache = {
             'msgs': [],
@@ -23,7 +25,11 @@ class Runner:
             'orders': [],
             'old_orders': [],
             'reviews': [],
-            'old_reviews': []
+            'old_reviews': [],
+            'lot_categories': [],
+            'old_lot_categories': [],
+            'chip_categories': [],
+            'old_chip_categories': []
         }
         self._cache_is_updated = False
 
@@ -34,10 +40,10 @@ class Runner:
         while True:
             await asyncio.sleep(3600)
     
-    async def _run_loop(self, timer):
+    async def _run_loop(self, timer, watch_lots:list=None, watch_chips:list=None):
         while True:
             try:
-                await self._cache_runner()
+                await self._cache_runner(watch_lots, watch_chips)
                 await asyncio.sleep(timer)
             except fpx_err.FpxRequestError:
                 await asyncio.sleep(60)
@@ -46,18 +52,20 @@ class Runner:
             except Exception as e:
                 raise fpx_err.FpxCriticalRunnerError(message=str(e))
 
-    async def runner_polling(self, timer, is_background:bool=False):
+    async def runner_polling(self, timer, is_background:bool=False, watch_lots:list=None, watch_chips:list=None):
         '''
         Запускает поиск новых событий.
 
         Args:
             timer (str): Задержка в секундах, раз в которую будет происходить обновление кеша (рекомендуемо 3-5 сек).   
             is_background (bool): По дефолту True(в фоне). Определяет, будет ли функция запущена в фоне или нет (если не в фоне, блокирует остальные процессы). 
+            watch_lots (list): Можно не передавать. Список категорий лотов, которые будет проверять скрипт.     
+            watch_chips (list): Можно не передавать. Список категорий чипсов(коротких лотов под валюты), которые будет проверять скрипт.
         '''
         if is_background:
-            asyncio.create_task(self._run_loop(timer))
+            asyncio.create_task(self._run_loop(timer, watch_lots, watch_chips))
         else:
-            await self._run_loop(timer)
+            await self._run_loop(timer, watch_lots, watch_chips)
 
     async def _warm_up(self):
         '''Прогрев кеша'''
@@ -70,11 +78,15 @@ class Runner:
         for handler in self.handler._handlers['startup']:
             asyncio.create_task(handler())
 
-    async def _cache_runner(self):
+    async def _cache_runner(self, watch_lots, watch_chips):
         '''Управляет кешем'''
         if not self._cache_is_updated:
             await self._warm_up()
             return
+        if watch_lots:
+            await self._category._check_lot_categories(watch_lots)
+        if watch_chips:
+            await self._category._check_chip_categories(watch_chips)
         await self._chat._check_chats()
         await self._order._check_orders()
         await self._review._check_reviews()
