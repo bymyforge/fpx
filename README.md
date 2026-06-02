@@ -10,6 +10,9 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/bymyforge/fpx" target="_blank">
+    <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
+  </a>
   <a href="https://t.me/fpx_engine" target="_blank">
     <img src="https://img.shields.io/badge/Telegram_Канал-26A5E4?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram">
   </a>
