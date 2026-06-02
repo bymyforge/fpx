@@ -29,5 +29,5 @@ class ChatData:
 class Message:
     sender: str
     chat_id: str
-    last_msg: str
+    text: str
     is_system: bool

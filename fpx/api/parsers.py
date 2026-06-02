@@ -177,6 +177,7 @@ class FunPayParser:
             user_id = href.strip('/').split('/')[-1]
             if user_id.isdigit():
                 result['user-id'] = user_id
+                result['username'] = soup.find('div', class_='user-link-name').get_text(strip=True)
             else:
                 raise fpx_err.FpxParseError('Не удалось извлечь цифровой ID юзера, возможно слетела сессия или изменилась вёрстка')
         else:

@@ -61,6 +61,7 @@ class Runner:
 
     async def _warm_up(self):
         '''Прогрев кеша'''
+        await self._account.profile.get_user_data()
         for _ in range(2):
             await self._chat._update_chat_cache()
             await self._order._update_order_cache()

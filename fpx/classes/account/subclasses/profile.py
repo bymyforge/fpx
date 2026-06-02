@@ -18,6 +18,7 @@ class ProfileManager:
         '''
         html = await self.account.client.get_main_menu()
         data = self.account.parser.parse_main_menu(html)
+        self.account.username = data['username']
         self.account.user_id = data['user-id']
         self.account._csrf_token = data['csrf-token']
         user_data = UserData(csrf_token=data['csrf-token'], user_id=data['user-id'])

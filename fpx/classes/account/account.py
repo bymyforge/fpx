@@ -19,6 +19,7 @@ class Account:
         self.client = FunPayClient(self, self.http_client)
         self._request_engine = RequestEngine(self, self.http_client)
         self.parser = FunPayParser()
+        self.username = None
         self.user_id = None
         self._csrf_token = None
         self._node_names = {}
