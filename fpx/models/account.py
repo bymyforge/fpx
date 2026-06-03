@@ -42,7 +42,13 @@ class Order:
         '''Ответить в этот же чат'''
         if not self._client:
             raise fpx_err.FpxClientNotAttachedError('Объект Order не привязан к клиенту fpx')
-        return await self._client._account.chat.send_message(self.chat_node_id, answer_text)
+        formatted_reply = answer_text.format(
+                            order_id=self.order_id,
+                            order_time=self.order_time,
+                            client_name=self.client_name,
+                            order_name=self.name
+                        )
+        return await self._client._account.chat.send_message(self.chat_id, formatted_reply)
 
 @dataclass
 class Review:

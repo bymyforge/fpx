@@ -39,4 +39,9 @@ class Message:
         '''Ответить в этот же чат'''
         if not self._client:
             raise fpx_err.FpxClientNotAttachedError('Объект Message не привязан к клиенту fpx')
-        return await self._client._account.chat.send_message(self.chat_id, answer_text)
+        formatted_reply = answer_text.format(
+                            sender=self.sender,
+                            chat_id=self.chat_id,
+                            text=self.text
+                        )
+        return await self._client._account.chat.send_message(self.chat_id, formatted_reply)
