@@ -50,7 +50,7 @@ from fpx import FunPayTools, Message
 
 async def main():
     # инициализируем аккаунт
-    fp = FunPayTools('hgh14vyfnwc0er9ivjbxh7uk52nizb8h')
+    fp = FunPayTools('gkey')
     # ловим сообщение
     @fp.handler.on_message()
     async def answer_message(message: Message):
