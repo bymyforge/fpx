@@ -19,6 +19,7 @@ class Runner:
         self._review = ReviewRunner(self)
         self._category = CategoryRunner(self)
         self.handler = Handlers(self)
+        self.storage = None
         self._cache = {
             'msgs': [],
             'old_msgs': [],

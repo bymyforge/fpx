@@ -39,7 +39,13 @@ class ChatRunner:
         if self.runner._account.username == message.sender:
             return
         msg_text = message.text.lower()
+        current_state = await self.runner.storage.get_state(message.chat_id)
         for handler in self.runner.handler._handlers['message']:
+            if handler['state'] != current_state:
+                continue
+            if handler['state'] is not None:
+                await handler['function'](message)
+                break
             if handler['mapping'] is not None:
                 matched = False
                 for trigger, reply in handler['mapping'].items():

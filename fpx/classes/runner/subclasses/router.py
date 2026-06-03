@@ -18,7 +18,7 @@ class Router:
             'flood': []
         }
         
-    def on_message(self, text: str | None = None, mapping: dict[str, str] | None = None):
+    def on_message(self, text: str | None = None, mapping: dict[str, str] | None = None, state: str | None = None):
         '''Декоратор отслеживает новые сообщения.
         
         Args:
@@ -37,7 +37,8 @@ class Router:
             self._handlers['message'].append({
                 'function': func,
                 'filter_text': text,
-                'mapping': mapping
+                'mapping': mapping,
+                'state': state
             })
             return func
         return decorator
