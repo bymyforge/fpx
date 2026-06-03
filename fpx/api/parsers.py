@@ -148,6 +148,8 @@ class FunPayParser:
                 rev['stars'] = int(rating.replace('rating', ''))
                 rev['author'] = review.find('div', class_='media-user-name').get_text(strip=True)
                 rev['detail'] = review.find('div', class_='review-item-detail').get_text(strip=True)
+                order_id = review.find('div', class_='review-item-order')
+                rev['order_id'] = order_id.find('a').get('href').split('/')[-2]
                 reviews.append(rev)
             except Exception as e:
                 logger.debug(f'При парсинге конкретного отзыва возникла ошибка: {e}')

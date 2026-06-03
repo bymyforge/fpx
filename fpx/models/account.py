@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Optional, Any
 
+from fpx.utils import errors as fpx_err
+
 @dataclass
 class Balance:
     rub: float=0.0
@@ -18,7 +20,34 @@ class CurReview:
     text: str
     stars: int
     author: str
-    item_name: str
+    order_id: str
+    order: Optional[Order] = None
+    _client: Any = field(init=False, repr=False, default=None)
+
+    async def answer(self, answer_text: str) -> bool:
+        '''Ответить на отзыв'''
+        if not self._client:
+            raise fpx_err.FpxCriticalRunnerError('Объект CurReview не привязан к клиенту fpx')
+        formatted_reply = answer_text.format(
+            author=self.author,
+            order_id=self.order_id,
+            order_name=self.order.name,
+            order_time=self.order.order_time
+        )
+        return await self._client._account.review.review_answer(self.order_id, formatted_reply)
+    
+    async def message_author(self, message_text: str) -> bool:
+        '''Ответить на отзыв в чате'''
+        if not self._client:
+            raise fpx_err.FpxCriticalRunnerError('Объект CurReview не привязан к клиенту fpx')
+        formatter_reply = message_text.format(
+            author=self.author,
+            order_id=self.order_id,
+            order_name=self.order.name,
+            order_time=self.order.order_time
+        )
+        #добавить ещё ревью тайм
+        return await self._client._account.chat.send_message(self.order.chat_node_id, formatter_reply)
 
 @dataclass
 class UserData:
@@ -38,6 +67,7 @@ class Order:
     category: Optional[str] = None
     review: Optional[dict] = None
     _client: Any = field(init=False, repr=False, default=None)
+
     async def answer(self, answer_text: str) -> bool:
         '''Ответить в этот же чат'''
         if not self._client:

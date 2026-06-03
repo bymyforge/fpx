@@ -84,7 +84,7 @@ class ProfileManager:
         html = await self.account.client.get_user_profile(target_id)
         data = self.account.parser.parse_profile(html)
         lots_list = [LotInfo(name=lot['name'], id=lot['id']) for lot in data['lots']]
-        reviews = [CurReview(text=rev['text'], stars=rev['stars'], author=rev['author'], item_name=rev['detail']) for rev in data['reviews']]
+        reviews = [CurReview(text=rev['text'], stars=rev['stars'], author=rev['author'], order_id=rev['order_id']) for rev in data['reviews']]
         profile = Profile(category_ids=data['category-ids'], lots=lots_list, reviews=reviews)
         return profile
 
