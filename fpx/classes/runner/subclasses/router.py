@@ -110,8 +110,11 @@ class Router:
             return func
         return decorator
     
-    def on_new_review(self):
+    def on_new_review(self, stars: int | None = None):
         '''Декоратор отслеживает новые отзывы.
+
+        Args:
+            - stars (int | None): Количество звёзд, на которое хендлер будет реагировать (не обязательно передавать).
 
         Returns:
             CurReview: Объект, содержащий:        
@@ -121,7 +124,10 @@ class Router:
                 - item_name (str): Заказ, под которым оставлен отзыв        
         '''
         def decorator(func):
-            self._handlers['review'].append(func)
+            self._handlers['review'].append({
+                'function': func,
+                'stars': stars
+            })
             return func
         return decorator
 

@@ -27,7 +27,11 @@ class ReviewRunner:
         review._client = self.runner
         review.order = order
         for handler in self.runner.handler._handlers['review']:
-            await handler(review)
+            if handler['stars'] is None:
+                await handler['function'](review)
+            else:
+                if review.stars == handler['stars']:
+                    await handler['function'](review)
 
     async def _check_reviews(self):
         await self.runner._review._update_review_cache()
