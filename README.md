@@ -46,28 +46,18 @@ pip install -U fpx-engine
 
 ```python
 import asyncio
-from fpx import FunPayTools
+from fpx import FunPayTools, Message
 
 async def main():
-    # Инициализируем аккаунт (замените 'gkey' на golden_key вашего аккаунта)
-    fp = FunPayTools('gkey')
-
-    # Ловим новое сообщение
+    # инициализируем аккаунт
+    fp = FunPayTools('hgh14vyfnwc0er9ivjbxh7uk52nizb8h')
+    # ловим сообщение
     @fp.handler.on_message()
-    async def get_message(message):
-        print(f'Пришло сообщение: {message.text} от {message.sender}')
-        
-        # Отвечаем в чат
-        new_message = await fp.account.chat.send_message(message.chat_id, 'Привет, я на связи!')
-        if new_message:
-            print('Успешно ответил на сообщение')
-        else:
-            print('Не удалось отправить сообщение!')
-
-    # Запускаем слушатель событий в фоновом режиме (опрос каждые 3 секунды)
+    async def answer_message(message: Message):
+        # отвечаем на сообщение
+        await message.answer('Привет')
+    #запускаем приём событий
     await fp.runner.runner_polling(3, is_background=True)
-    
-    # Зацикливаем программу, чтобы фоновые функции не останавливались
     await fp.runner.idle()
 
 if __name__ == '__main__':
