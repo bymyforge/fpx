@@ -1,4 +1,7 @@
 from dataclasses import dataclass, field
+from typing import Any
+
+from fpx.utils import errors as fpx_err
 
 @dataclass
 class Chat:
@@ -31,3 +34,9 @@ class Message:
     chat_id: str
     text: str
     is_system: bool
+    _client: Any = field(init=False, repr=False, default=None)
+    async def answer(self, answer_text: str) -> bool:
+        '''Ответить в этот же чат'''
+        if not self._client:
+            raise fpx_err.FpxClientNotAttachedError('Объект Message не привязан к клиенту fpx')
+        return await self._client._account.chat.send_message(self.chat_id, answer_text)

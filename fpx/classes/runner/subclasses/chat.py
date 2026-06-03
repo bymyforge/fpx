@@ -35,6 +35,34 @@ class ChatRunner:
         self.runner._cache['old_msgs'] = self.runner._cache['msgs']
         self.runner._cache['msgs'] = result
 
+    async def _trigger_message_handlers(self, message):
+        if self.runner._account.username == message.sender:
+            return
+        msg_text = message.text.lower()
+        for handler in self.runner.handler._handlers['message']:
+            if handler['mapping'] is not None:
+                matched = False
+                for trigger, reply in handler['mapping'].items():
+                    if msg_text.startswith(trigger.lower()):
+                        formatted_reply = reply.format(
+                            sender=message.sender,
+                            chat_id=message.chat_id,
+                            text=message.text
+                        )
+                        await message.answer(formatted_reply)
+                        matched = True
+                        break
+                if matched:
+                    await handler['function'](message)
+                    continue
+            filter_text = handler['filter_text']
+            if filter_text is None and handler['mapping'] is None:
+                await handler['function'](message)
+                continue
+            if isinstance(filter_text, str) and msg_text.startswith(filter_text.lower()):
+                await handler['function'](message)
+                continue
+
     async def _check_chats(self):
         await self.runner._chat._update_chat_cache()
         chats = await self.runner._chat._compare_chat_cache()
@@ -43,7 +71,5 @@ class ChatRunner:
                 msg_obj = await self.runner._account.chat.get_chat_data(chat.chat_id)
                 message = msg_obj.last_message
                 chat = Message(sender=message['sender'], chat_id=chat.chat_id, text=chat.text, is_system=message['is_system'])   
-                if self.runner._account.username == chat.sender:
-                    continue                
-                for handler in self.runner.handler._handlers['message']:
-                    await handler(chat)
+                chat._client = self.runner
+                await self._trigger_message_handlers(chat)

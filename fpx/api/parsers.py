@@ -274,13 +274,26 @@ class FunPayParser:
         result = {}
         result['review'] = {}
         try:
+            languages = ['подробное описание', 'detailed description', 'докладний опис']
+            desc_h5 = soup.find('h5', string=lambda text: text and any(lang in text.lower() for lang in languages))
+            if desc_h5:
+                desc_div = desc_h5.find_next('div')
+                if desc_div:
+                    description = desc_div.get_text(separator="\n").strip()
+                    result['desc'] = description
+            chat_link = soup.find('a', href=lambda h: h and 'node=' in h)
+            if chat_link:
+                result['chat_node_id'] = chat_link.get('href', '').split('=')[-1]
+            else:
+                result['chat_node_id'] = None
             header = soup.find('h1', class_='page-header')
             if not header:
                 raise fpx_err.FpxNullDataError('Страница заказа не найдена, возможно, указан неверный ID или слетела сессия.')
             spans = header.find_all('span')
             if not spans:
-                raise fpx_err.FpxParseError('Не удалось распарсить статус заказа из заголовка.')
-            result['status'] = " / ".join([span.get_text(strip=True) for span in spans])
+                result['status'] = 'Оплачен'
+            else:
+                result['status'] = " / ".join([span.get_text(strip=True) for span in spans])
             review_container = soup.find('div', class_='review-container')
             if review_container:
                 try:

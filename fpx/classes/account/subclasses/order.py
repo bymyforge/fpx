@@ -14,11 +14,12 @@ class OrderManager:
         Returns:
             Order: Объект с данными:  
                 - status (str): Статус заказа.  
-                - review (dict): Словарь с данными отзыва, который оставили к заказу.  
+                - review (dict): Словарь с данными отзыва, который оставили к заказу.   
+                - description (str): Строка с подробным описанием заказа
         '''
         html = await self.account.client.get_order_info(order_id)
         data = self.account.parser.parse_order_page(html)
-        order = Order(status=data['status'], review=data['review'])
+        order = Order(status=data['status'], review=data['review'], description=data['desc'], chat_node_id=data['chat_node_id'])
         return order
 
     async def refund_order(self, order_id):

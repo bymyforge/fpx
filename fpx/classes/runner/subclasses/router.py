@@ -18,21 +18,31 @@ class Router:
             'flood': []
         }
         
-    def on_message(self):
+    def on_message(self, text: str | None = None, mapping: dict[str, str] | None = None):
         '''Декоратор отслеживает новые сообщения.
+        
+        Args:
+            - text (str): Текст, по которому фильтруется отображение новых сообщений.
+            - mapping (dict): Словарь 'ключ': 'значение' для упрощённых ответов, вводи 'Привет' и 'Привет, работаю' и теперь скрипт будет всегда отвечать за тебя Привет, работаю когда тебе пишут привет. Вводи сколько угодно маппинга    
 
         Returns:
             Message: Объект, содержащий:    
                 - sender (str): Имя отправителя     
                 - chat_id (str): Айди чата (node id)    
                 - last_msg (str): Сообщение, которое было отправлено в этом чате    
+                - is_system (bool): Системное ли сообщение      
+                - anwer (method): При указании текста в аргументах, отвечает на сообщение       
         '''
         def decorator(func):
-            self._handlers['message'].append(func)
+            self._handlers['message'].append({
+                'function': func,
+                'filter_text': text,
+                'mapping': mapping
+            })
             return func
         return decorator
 
-    def on_orders(self):
+    def on_orders(self, mapping: list[str] | None = None):
         '''
         Декоратор отслеживает все события заказов.
         Не рекомендуется использовать вместе с on_cofirmed_orders, on_new_order, on_refunded_orders во избежание дублирования событий.
@@ -40,18 +50,23 @@ class Router:
         Returns:
             Order: Объект, содержащий:      
                 - order_id (str): Уникальный ID заказа          
+                - description (str): Описание лота
                 - order_time (str): Время оплаты заказа     
                 - client_name (str): Имя клиента
                 - price (str): Цена товара     
                 - status (str): Статус заказа   
                 - name (str): Название товара   
+                - anwer (method): При указании текста в аргументах, отвечает на сообщение       
         '''
         def decorator(func):
-            self._handlers['order'].append(func)
+            self._handlers['order'].append({
+                'function': func,
+                'mapping': mapping
+            })
             return func
         return decorator
     
-    def on_confirmed_orders(self):
+    def on_confirmed_orders(self, mapping: list | None = None):
         '''
         Декоратор, который отслеживает только событие подтверждёния заказа.
 
@@ -63,13 +78,17 @@ class Router:
                 - price (str): Цена товара     
                 - status (str): Статус заказа   
                 - name (str): Название товара   
+                - anwer (method): При указании текста в аргументах, отвечает на сообщение       
         '''
         def decorator(func):
-            self._handlers['confirmed_order'].append(func)
+            self._handlers['confirmed_order'].append({
+                'function': func,
+                'mapping': mapping
+            })
             return func
         return decorator
 
-    def on_new_order(self):
+    def on_new_order(self, mapping: list | None = None):
         '''
         Декоратор, который отслеживает только новые заказы.
 
@@ -81,9 +100,13 @@ class Router:
                 - price (str): Цена товара     
                 - status (str): Статус заказа   
                 - name (str): Название товара   
+                - anwer (method): При указании текста в аргументах, отвечает на сообщение       
         '''
         def decorator(func):
-            self._handlers['new_order'].append(func)
+            self._handlers['new_order'].append({
+                'function': func,
+                'mapping': mapping
+            })
             return func
         return decorator
     
@@ -102,7 +125,7 @@ class Router:
             return func
         return decorator
 
-    def on_refunded_orders(self):
+    def on_refunded_orders(self, mapping: list | None = None):
         '''
         Декоратор отслеживает события возврата заказов.
 
@@ -114,9 +137,13 @@ class Router:
                 - price (str): Цена товара     
                 - status (str): Статус заказа   
                 - name (str): Название товара   
+                - anwer (method): При указании текста в аргументах, отвечает на сообщение       
         '''
         def decorator(func):
-            self._handlers['refund'].append(func)
+            self._handlers['refund'].append({
+                'function': func,
+                'mapping': mapping
+            })
             return func
         return decorator
 

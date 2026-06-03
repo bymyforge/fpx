@@ -35,19 +35,40 @@ class OrderRunner:
                     result.append(Order(**order))
         return result
 
+    async def _check_handler(self, handler, order):
+        if handler.get('mapping') is None:
+            await handler['function'](order)
+            return
+        else:
+            matched = False
+            for trigger in handler['mapping']:
+                if trigger.lower() in order.description.lower():
+                    matched = True
+                    break
+            if matched:
+                await handler['function'](order)
+
+    async def _trigger_order_handlers(self, order: Order):
+        for handler in self.runner.handler._handlers['order']:
+            await self._check_handler(handler, order)
+        status = order.status.lower()
+        if status in ('закрыт', 'closed', 'закрито'):
+            for handler in self.runner.handler._handlers['confirmed_order']:
+                await self._check_handler(handler, order)
+        elif status in('оплачен', 'оплачено', 'paid', 'opened', 'відкрито'):
+            for handler in self.runner.handler._handlers['new_order']:
+                await self._check_handler(handler, order)
+        elif status in ('возврат', 'повернення', 'refund'):
+            for handler in self.runner.handler._handlers['refund']:
+                await self._check_handler(handler, order)
+
     async def _check_orders(self):
         await self.runner._order._update_order_cache()
         orders = await self.runner._order._compare_order_cache()
         if orders:
             for order in orders:
-                for handler in self.runner.handler._handlers['order']:
-                    await handler(order)
-                if order.status == 'Закрыт':
-                    for handler in self.runner.handler._handlers['confirmed_order']:
-                        await handler(order)
-                elif order.status in('Оплачено', 'Оплачен'):
-                    for handler in self.runner.handler._handlers['new_order']:
-                        await handler(order)
-                elif order.status == 'Возврат':
-                    for handler in self.runner.handler._handlers['refund']:
-                        await handler(order)
+                order_info = await self.runner._account.order.get_order_details(order.order_id)
+                order.description = order_info.description
+                order.chat_node_id = order_info.chat_node_id
+                order._client = self.runner
+                await self._trigger_order_handlers(order)

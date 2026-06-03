@@ -23,7 +23,7 @@ class ChatManager:
         chats = self.account.parser.parse_chats_list(html)
         return chats
 
-    async def send_message(self, chat_id:str, text:str):
+    async def send_message(self, chat_id:str, text:str, with_nodes: bool = False):
         """
         Отправляет сообщение.  
 

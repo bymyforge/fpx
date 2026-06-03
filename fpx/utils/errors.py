@@ -56,6 +56,11 @@ class FpxAnswerReviewError(FpxAccountError):
     def __init__(self, message='Ошибка ответа на отзыв'):
         super().__init__(message)
 
+class FpxClientNotAttachedError(FpxAccountError):
+    """Объект контекста не привязан к главному клиенту fpx."""
+    def __init__(self, message='Объект не привязан к клиенту fpx и не может выполнять действия'):
+        super().__init__(message)
+
 
 # --- Ошибки парсера ---
 class FpxNullDataError(FpxParseError):
