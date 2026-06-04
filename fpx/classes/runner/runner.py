@@ -53,7 +53,7 @@ class Runner:
             except Exception as e:
                 raise fpx_err.FpxCriticalRunnerError(message=str(e))
 
-    async def runner_polling(self, timer=3, is_background:bool=True, watch_lots:list=None, watch_chips:list=None):
+    async def start_polling(self, timer=3, is_background:bool=True, watch_lots:list=None, watch_chips:list=None):
         '''
         Запускает поиск новых событий.
 
@@ -65,6 +65,7 @@ class Runner:
         '''
         if is_background:
             asyncio.create_task(self._run_loop(timer, watch_lots, watch_chips))
+            await self.idle()
         else:
             await self._run_loop(timer, watch_lots, watch_chips)
 

@@ -1,0 +1,43 @@
+site_name: fpx-engine
+site_description: Асинхронный фреймворк для автоматизации FunPay на Python.
+site_author: bymyforge
+
+theme:
+  name: material
+  language: ru
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: purple
+      toggle:
+        icon: material/weather-sunny
+        name: Включить темную тему
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: purple
+      toggle:
+        icon: material/weather-night
+        name: Включить светлую тему
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - code.copy
+
+nav:
+  - Главная: index.md
+  - Быстрый старт: quickstart.md
+  - Основной функционал:
+      - Обработка сообщений: chat.md
+      - Работа с заказами: orders.md
+  - Продвинутый уровень:
+      - Машина состояний (FSM): fsm.md
+  - Примеры ботов: examples.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences

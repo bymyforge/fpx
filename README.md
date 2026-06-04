@@ -14,7 +14,7 @@
     <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
   </a>
   <a href="https://t.me/fpx_engine" target="_blank">
-    <img src="https://img.shields.io/badge/Telegram_Канал-26A5E4?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram">
+    <img src="https://img.shields.io/badge/Телеграм_Чат-26A5E4?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram">
   </a>
   <a href="https://pypi.org/project/fpx-engine/" target="_blank">
     <img src="https://img.shields.io/badge/PyPI-3775A9?style=for-the-badge&logo=pypi&logoColor=white" alt="PyPI">
@@ -57,8 +57,7 @@ async def main():
         # отвечаем на сообщение
         await message.answer('Привет')
     #запускаем приём событий
-    await fp.runner.runner_polling(3, is_background=True)
-    await fp.runner.idle()
+    await fp.runner.start_polling(3, is_background=True)
 
 if __name__ == '__main__':
     asyncio.run(main())
