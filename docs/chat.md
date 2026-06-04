@@ -85,14 +85,14 @@ history = await fp.account.chat.get_chat_data(chat_id=1234567)</code></pre>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
       <td style="padding: 10px;"><code>@fp.handler.on_message()</code></td>
       <td style="padding: 10px;"><code>text: str</code><br><code>mapping: dict</code><br><code>state: str</code></td>
-      <td style="padding: 10px;"><code>Message</code> (в хендлер)</td>
+      <td style="padding: 10px;"><a href="models/#Message"><code>Message</code></a> (в хендлер)</td>
       <td>Декоратор для перехвата сообщений. Передает в функцию объект <code>Message</code> с данными чата, отправителя и методом <code>.answer()</code>.</td>
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
       <td style="padding: 10px;"><code>await message.answer()</code></td>
       <td style="padding: 10px;"><code>text: str</code></td>
       <td style="padding: 10px;"><code>bool</code></td>
-      <td>Быстрый асинхронный ответ в тот же чат, откуда пришло сообщение. Возвращает <code>True</code> при успехе или <code>False</code>.</td>
+      <td>Быстрый асинхронный ответ в тот же чат, откуда пришло сообщение. Поддерживает автоформатирование. Возвращает <code>True</code> при успехе.</td>
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
       <td style="padding: 10px;"><code>await fp.account.chat.send_message()</code></td>
@@ -103,13 +103,13 @@ history = await fp.account.chat.get_chat_data(chat_id=1234567)</code></pre>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
       <td style="padding: 10px;"><code>await fp.account.chat.get_chats()</code></td>
       <td style="padding: 10px;"><i>нет</i></td>
-      <td style="padding: 10px;"><code>list[Chat]</code></td>
+      <td style="padding: 10px;"><a href='models/#Chat'><code>list[Chat]</code></td>
       <td>Собирает все чаты на аккаунте. Возвращает список объектов с ID, юзернеймом, текстом и датой последнего сообщения, ссылкой и флагом прочтения.</td>
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
       <td style="padding: 10px;"><code>await fp.account.chat.get_chat_data()</code></td>
       <td style="padding: 10px;"><code>chat_id: int | str</code></td>
-      <td style="padding: 10px;"><code>ChatData</code></td>
+      <td style="padding: 10px;"><a href="models/#ChatData"><code>ChatData</code></a></td>
       <td>Скачивает технические данные чата. Возвращает объект <code>ChatData</code> (node_name, csrf_token, user_id, last_message) и сохраняет токены в кэш.</td>
     </tr>
   </tbody>

@@ -16,6 +16,7 @@ class OrderManager:
                 - status (str): Статус заказа.  
                 - review (dict): Словарь с данными отзыва, который оставили к заказу.   
                 - description (str): Строка с подробным описанием заказа
+                - chat_id (str): ID чата
         '''
         html = await self.account.client.get_order_info(order_id)
         data = self.account.parser.parse_order_page(html)

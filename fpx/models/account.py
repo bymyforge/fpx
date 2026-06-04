@@ -32,7 +32,8 @@ class CurReview:
             author=self.author,
             order_id=self.order_id,
             order_name=self.order.name,
-            order_time=self.order.order_time
+            order_time=self.order.order_time,
+            stars=self.stars
         )
         return await self._client._account.review.review_answer(self.order_id, formatted_reply)
     
@@ -44,7 +45,8 @@ class CurReview:
             author=self.author,
             order_id=self.order_id,
             order_name=self.order.name,
-            order_time=self.order.order_time
+            order_time=self.order.order_time,
+            stars=self.stars
         )
         #добавить ещё ревью тайм
         return await self._client._account.chat.send_message(self.order.chat_node_id, formatter_reply)
