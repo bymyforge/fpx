@@ -46,23 +46,3 @@ class Message:
                             text=self.text
                         )
         return await self._client._account.chat.send_message(self.chat_id, formatted_reply)
-
-    async def set_state(self, state: str ):
-        if not self._client:
-            raise fpx_err.FpxClientNotAttachedError('Объект Message не привязан к клиенту fpx')
-        return await self._client.storage.set_state(self.chat_id, state)
-        
-    async def clear_state(self):
-        if not self._client:
-            raise fpx_err.FpxClientNotAttachedError('Объект Message не привязан к клиенту fpx')
-        return await self._client.storage.clear_state(self.chat_id)
-
-    async def update_data(self, data_key: str, data_value: str):
-        if not self._client:
-            raise fpx_err.FpxClientNotAttachedError('Объект Message не привязан к клиенту fpx')
-        return await self._client.storage.update_data(self.chat_id, data_key, data_value)
-
-    async def get_data(self):
-        if not self._client:
-            raise fpx_err.FpxClientNotAttachedError('Объект Message не привязан к клиенту fpx')
-        return await self._client.storage.get_data(self.chat_id)

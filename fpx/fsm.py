@@ -50,3 +50,24 @@ class MemoryStorage(BaseStorage):
 
     async def clear_state(self, chat_id: str):
         self._states.pop(chat_id, None)
+
+class FSMContext:
+    def __init__(self, storage: BaseStorage, chat_id: str):
+        self.storage = storage
+        self.chat_id = chat_id
+    
+    async def set_state(self, state: str | None):
+        await self.storage.set_state(self.chat_id, state)
+
+    async def get_state(self) -> str | None:
+        return await self.storage.get_state(self.chat_id)
+
+    async def update_data(self, **kwargs):
+        for k, v in kwargs.items():
+            await self.storage.update_data(self.chat_id, k, v)
+
+    async def get_data(self) -> dict:
+        return await self.storage.get_data(self.chat_id)
+
+    async def clear_state(self):
+        await self.storage.clear_state(self.chat_id)

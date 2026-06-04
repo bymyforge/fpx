@@ -1,4 +1,7 @@
+import inspect
+
 from fpx.models.account import Order
+from fpx.fsm import FSMContext
 
 
 class OrderRunner:
@@ -35,32 +38,37 @@ class OrderRunner:
                     result.append(Order(**order))
         return result
 
-    async def _check_handler(self, handler, order):
-        if handler.get('mapping') is None:
-            await handler['function'](order)
-            return
-        else:
+    async def _check_handler(self, handler, order, state_ctx):
+        h_func = handler['function']
+        if handler.get('mapping') is not None:
+            msg_text = order.description.lower()
             matched = False
             for trigger in handler['mapping']:
-                if trigger.lower() in order.description.lower():
+                if trigger.lower() in msg_text:
                     matched = True
                     break
-            if matched:
-                await handler['function'](order)
+                if not matched:
+                    return False
+        sig = inspect.signature(h_func)
+        if len(sig.parameters) >= 2:
+            await h_func(order, state_ctx)
+        else:
+            await h_func(order)
 
     async def _trigger_order_handlers(self, order: Order):
-        for handler in self.runner.handler._handlers['order']:
-            await self._check_handler(handler, order)
+        state_ctx = FSMContext(self.runner.storage, order.chat_id)
         status = order.status.lower()
+        for handler in self.runner.handler._handlers['order']:
+            await self._check_handler(handler, order, state_ctx)
         if status in ('закрыт', 'closed', 'закрито'):
             for handler in self.runner.handler._handlers['confirmed_order']:
-                await self._check_handler(handler, order)
+                await self._check_handler(handler, order, state_ctx)
         elif status in('оплачен', 'оплачено', 'paid', 'opened', 'відкрито'):
             for handler in self.runner.handler._handlers['new_order']:
-                await self._check_handler(handler, order)
+                await self._check_handler(handler, order, state_ctx)
         elif status in ('возврат', 'повернення', 'refund'):
             for handler in self.runner.handler._handlers['refund']:
-                await self._check_handler(handler, order)
+                await self._check_handler(handler, order, state_ctx)
 
     async def _check_orders(self):
         await self.runner._order._update_order_cache()
@@ -69,6 +77,6 @@ class OrderRunner:
             for order in orders:
                 order_info = await self.runner._account.order.get_order_details(order.order_id)
                 order.description = order_info.description
-                order.chat_node_id = order_info.chat_node_id
+                order.chat_id = order_info.chat_id
                 order._client = self.runner
                 await self._trigger_order_handlers(order)

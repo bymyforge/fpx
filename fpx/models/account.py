@@ -57,7 +57,7 @@ class UserData:
 @dataclass
 class Order:
     order_id: Optional[str] = None
-    chat_node_id: Optional[str] = None
+    chat_id: Optional[str] = None
     order_time: Optional[str] = None
     description: Optional[str] = None
     client_name: Optional[str] = None

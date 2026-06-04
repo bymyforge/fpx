@@ -283,11 +283,12 @@ class FunPayParser:
                 if desc_div:
                     description = desc_div.get_text(separator="\n").strip()
                     result['desc'] = description
-            chat_link = soup.find('a', href=lambda h: h and 'node=' in h)
+            chat_link = soup.select_one('div.chat-float[data-id]')
             if chat_link:
-                result['chat_node_id'] = chat_link.get('href', '').split('=')[-1]
+                result['chat_id'] = chat_link.get('data-id', '')
             else:
-                result['chat_node_id'] = None
+                chat_link = soup.select_one('div[data-id][data-name*="users-"]')
+                result['chat_id'] = chat_link.get('data-id', '') if chat_link else None
             header = soup.find('h1', class_='page-header')
             if not header:
                 raise fpx_err.FpxNullDataError('Страница заказа не найдена, возможно, указан неверный ID или слетела сессия.')

@@ -1,5 +1,7 @@
-from fpx.models.chat import Message
+import inspect
 
+from fpx.models.chat import Message
+from fpx.fsm import FSMContext
 
 class ChatRunner:
     def __init__(self, runner):
@@ -40,11 +42,18 @@ class ChatRunner:
             return
         msg_text = message.text.lower()
         current_state = await self.runner.storage.get_state(message.chat_id)
+        state_ctx = FSMContext(storage=self.runner.storage, chat_id=message.chat_id)
         for handler in self.runner.handler._handlers['message']:
             if handler['state'] != current_state:
                 continue
+            async def call_handler(h_func):
+                sig = inspect.signature(h_func)
+                if len(sig.parameters) >= 2:
+                    await h_func(message, state_ctx)
+                else:
+                    await h_func(message)
             if handler['state'] is not None:
-                await handler['function'](message)
+                await call_handler(handler['function'])
                 break
             if handler['mapping'] is not None:
                 matched = False
@@ -59,15 +68,15 @@ class ChatRunner:
                         matched = True
                         break
                 if matched:
-                    await handler['function'](message)
-                    continue
+                    await call_handler(handler['function'])
+                    break
             filter_text = handler['filter_text']
             if filter_text is None and handler['mapping'] is None:
-                await handler['function'](message)
-                continue
+                await call_handler(handler['function'])
+                break
             if isinstance(filter_text, str) and msg_text.startswith(filter_text.lower()):
-                await handler['function'](message)
-                continue
+                await call_handler(handler['function'])
+                break
 
     async def _check_chats(self):
         await self.runner._chat._update_chat_cache()
