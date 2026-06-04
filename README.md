@@ -13,6 +13,9 @@
   <a href="https://github.com/bymyforge/fpx" target="_blank">
     <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
   </a>
+  <a href="https://fpx.readthedocs.io/ru/latest/" target="_blank">
+    <img src="https://img.shields.io/badge/Документация-00b0ff?style=for-the-badge&logo=read-the-docs&logoColor=white" alt="Read the Docs">
+  </a>
   <a href="https://t.me/fpx_engine" target="_blank">
     <img src="https://img.shields.io/badge/Телеграм_Чат-26A5E4?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram">
   </a>
