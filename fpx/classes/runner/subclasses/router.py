@@ -21,6 +21,28 @@ class Router:
             'flood': []
         }
 
+    def registrate_order_targets(self, target_dict: dict):
+        '''
+        Метод для регистрации команд автоматизации новых заказов.
+        
+        Args:
+            target_dict (dict): Словарь вида {'target': answer_new_def, 'моя пометка в описании': another_func}
+        '''
+        self._handlers['order_command'].append({
+            'trigger_command': target_dict
+        })
+
+    def registrate_message_command(self, command_dict: dict):
+        '''
+        Метод для регистрации команд автоматизации сообщений.
+
+        Args:
+            target_dict (dict): Словарь вида {'command': answer_new_def, '!start': another_func}
+        '''
+        self._handlers['commands'].append({
+            'command': command_dict
+        })
+
     def on_error(self):
         '''Декоратор для отлова ошибок'''
         def decorator(func):
@@ -32,8 +54,7 @@ class Router:
         self,
         text: str | None = None, 
         mapping: dict[str, str] | None = None, 
-        state: str | None = None, 
-        command: dict | None = None
+        state: str | None = None
     ):
         '''Декоратор отслеживает новые сообщения.
         
@@ -49,24 +70,13 @@ class Router:
                 - is_system (bool): Системное ли сообщение      
                 - anwer (method): При указании текста в аргументах, отвечает на сообщение       
         '''
-        if command and (text is not None or mapping is not None):
-            raise fpx_err.FpxAttributeError('В декоратор on_message неправильно переданы аттрибуты, если вы передаёте command, остальные аргументы нельзя передавать.')
         def decorator(func):
-            if command:
-                self._handlers['commands'].append({
-                    'function': func,
-                    'filter_text': text,
-                    'mapping': mapping,
-                    'command': command,
-                    'state': state
-                })
-            else:
-                self._handlers['message'].append({
-                    'function': func,
-                    'filter_text': text,
-                    'mapping': mapping,
-                    'state': state
-                })
+            self._handlers['message'].append({
+                'function': func,
+                'filter_text': text,
+                'mapping': mapping,
+                'state': state
+            })
             return func
         return decorator
 
@@ -118,8 +128,7 @@ class Router:
 
     def on_new_order(
         self, 
-        mapping: list | None = None, 
-        trigger_with_command: dict | None = None
+        mapping: list | None = None
     ):
         '''
         Декоратор, который отслеживает только новые заказы.
@@ -134,21 +143,11 @@ class Router:
                 - name (str): Название товара   
                 - anwer (method): При указании текста в аргументах, отвечает на сообщение       
         '''
-        if trigger_with_command and mapping is not None:
-            raise fpx_err.FpxAttributeError(f'В хендлер on_new_order неправильно переданы аттрибуты:'
-            'Аттрибут trigger_with_command должен передаваться одиночно')
         def decorator(func):
-            if trigger_with_command:
-                self._handlers['order_command'].append({
-                    'function': func,
-                    'mapping': mapping,
-                    'trigger_command': trigger_with_command  
-                })
-            else:
-                self._handlers['new_order'].append({
-                    'function': func,
-                    'mapping': mapping
-                })
+            self._handlers['new_order'].append({
+                'function': func,
+                'mapping': mapping
+            })
             return func
         return decorator
     

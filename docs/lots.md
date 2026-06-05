@@ -32,7 +32,8 @@ async def main():
     # Запускаем автоподнятие фоном
     asyncio.create_task(auto_raise_loop())
     # Запускаем самого раннера
-    await fp.runner.start_polling()
+    await fp.runner.start_polling(3)
+    await fp.runner.idle()
 
 if __name__ == "__main__":
     asyncio.run(main())</code></pre>

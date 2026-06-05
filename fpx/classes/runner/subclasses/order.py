@@ -1,4 +1,5 @@
 import inspect
+import asyncio
 
 from fpx.models.account import Order
 from fpx.fsm import FSMContext
@@ -48,8 +49,8 @@ class OrderRunner:
                     order.finded_mapping = trigger
                     matched = True
                     break
-                if not matched:
-                    return False
+            if not matched:
+                return False
         sig = inspect.signature(h_func)
         has_state = False
         for param in sig.parameters.values():
@@ -104,13 +105,19 @@ class OrderRunner:
             for handler in self.runner.handler._handlers['refund']:
                 await self._check_handler(handler, order, state_ctx)
 
+    async def _process_single_order(self, order: Order):
+        try:
+            order_info = await self.runner._account.order.get_order_details(order.order_id)
+            order.description = order_info.description
+            order.chat_id = order_info.chat_id
+            order._client = self.runner
+            await self._trigger_order_handlers(order)
+        except Exception:
+            pass
+
     async def _check_orders(self):
         await self.runner._order._update_order_cache()
         orders = await self.runner._order._compare_order_cache()
         if orders:
-            for order in orders:
-                order_info = await self.runner._account.order.get_order_details(order.order_id)
-                order.description = order_info.description
-                order.chat_id = order_info.chat_id
-                order._client = self.runner
-                await self._trigger_order_handlers(order)
+            tasks = [self._process_single_order(order) for order in orders]
+            await asyncio.gather(*tasks)

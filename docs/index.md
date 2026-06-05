@@ -82,6 +82,7 @@ async def echo_handler(message: Message):
 async def main():
     # Запускаем бесконечный цикл прослушивания событий
     await fp.runner.start_polling()
+    await fp.runner.idle()
 
 if __name__ == "__main__":
     asyncio.run(main())</code></pre>

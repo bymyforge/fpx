@@ -1,3 +1,5 @@
+import asyncio
+
 
 from fpx.models.account import CurReview, Order
 
@@ -10,7 +12,7 @@ class ReviewRunner:
     async def _update_review_cache(self):
         '''Обновляет кеш отзывов'''
         profile = await self.runner._account.profile.profile()
-        self.runner._cache['old_reviews'] = self.runner._cache['reviews'].copy()
+        self.runner._cache['old_reviews'] = self.runner._cache.get('reviews', [])
         self.runner._cache['reviews'] = profile.reviews
 
     async def _compare_review_cache(self):
@@ -23,19 +25,22 @@ class ReviewRunner:
         return result
 
     async def _target_review_processing(self, review: CurReview):
-        order = await self.runner._account.order.get_order_details(review.order_id)
-        review._client = self.runner
-        review.order = order
-        for handler in self.runner.handler._handlers['review']:
-            if handler['stars'] is None:
-                await handler['function'](review)
-            else:
-                if review.stars == handler['stars']:
-                    await handler['function'](review)
+        try:
+            order = await self.runner._account.order.get_order_details(review.order_id)
+            review._client = self.runner
+            review.order = order
+            for handler in self.runner.handler._handlers['review']:
+                if handler['stars'] is None:
+                    asyncio.create_task(handler['function'](review))
+                else:
+                    if review.stars == handler['stars']:
+                        await handler['function'](review)
+        except Exception:
+            pass
 
     async def _check_reviews(self):
         await self.runner._review._update_review_cache()
         reviews = await self.runner._review._compare_review_cache()
         if reviews:
-            for review in reviews:
-                await self._target_review_processing(review)
+            tasks = [self._target_review_processing(review) for review in reviews]
+            await asyncio.gather(*tasks)

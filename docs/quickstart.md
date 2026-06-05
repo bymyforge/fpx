@@ -51,7 +51,8 @@ async def handle_message(message: Message):
 
 async def main():
     # Запуск бесконечного прослушивания лонгпулла сообщений
-    await fp.runner.start_polling()
+    await fp.runner.start_polling(3)
+    await fp.runner.idle()
 
 if __name__ == "__main__":
     asyncio.run(main())</code></pre>

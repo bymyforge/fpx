@@ -61,6 +61,7 @@ async def main():
         await message.answer('Привет')
     #запускаем приём событий
     await fp.runner.start_polling(3, is_background=True)
+    await fp.runner.idle()
 
 if __name__ == '__main__':
     asyncio.run(main())

@@ -1,4 +1,4 @@
-
+import asyncio
 
 
 class CategoryRunner:
@@ -6,23 +6,35 @@ class CategoryRunner:
         self.runner = runner
 
     async def _update_lot_category_cache(self, lot_category_ids):
+        tasks = [
+            self.runner._account.category.get_lot_category_last_lot(cat_id)
+            for cat_id in lot_category_ids
+        ]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
         new_cache = []
-        for category_id in lot_category_ids:
-            lots = await self.runner._account.category.get_lot_category_last_lot(category_id)
-            for lot in lots:
-                lot.category_id = category_id 
-                new_cache.append(lot)
-        self.runner._cache['old_lot_categories'] = self.runner._cache['lot_categories']
-        self.runner._cache['lot_categories'] = new_cache
-
-    async def _update_chip_category_cache(self, chip_category_ids):
-        new_cache = []
-        for category_id in chip_category_ids:
-            lots = await self.runner._account.category.get_chip_category_last_lot(category_id)
+        for category_id, lots in zip(lot_category_ids, results):
+            if isinstance(lots, Exception):
+                continue
             for lot in lots:
                 lot.category_id = category_id
                 new_cache.append(lot)
-        self.runner._cache['old_chip_categories'] = self.runner._cache['chip_categories']
+        self.runner._cache['old_lot_categories'] = self.runner._cache.get('lot_categories')
+        self.runner._cache['lot_categories'] = new_cache
+
+    async def _update_chip_category_cache(self, chip_category_ids):
+        tasks = [
+            self.runner._account.category.get_chip_category_last_lot(cat_id)
+            for cat_id in chip_category_ids
+        ]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        new_cache = []
+        for category_id, lots in zip(chip_category_ids, results):
+            if isinstance(lots, Exception):
+                continue
+            for lot in lots:
+                lot.category_id = category_id
+                new_cache.append(lot)
+        self.runner._cache['old_chip_categories'] = self.runner._cache.get('chip_categories', [])
         self.runner._cache['chip_categories'] = new_cache
 
     async def _compare_lot_category_cache(self):
@@ -65,7 +77,7 @@ class CategoryRunner:
                 if lot.owner_username == self.runner._account.username:
                     continue
                 for handler in self.runner.handler._handlers['lot_category']:
-                    await handler(lot)
+                    asyncio.create_task(handler(lot))
 
     async def _check_chip_categories(self, chip_category_ids):
         await self._update_chip_category_cache(chip_category_ids)
@@ -75,4 +87,4 @@ class CategoryRunner:
                 if lot.owner_username == self.runner._account.username:
                     continue
                 for handler in self.runner.handler._handlers['chip_category']:
-                    await handler(lot)
+                    asyncio.create_task(handler(lot))
