@@ -37,18 +37,52 @@ class ChatRunner:
         self.runner._cache['old_msgs'] = self.runner._cache['msgs']
         self.runner._cache['msgs'] = result
 
+    async def _process_message(self, message: Message, state_ctx):
+        if not message.text:
+            return False
+        parts = message.text.split()
+        if not parts:
+            return False
+        first_word = parts[0].lower()
+        args = parts[1:]
+        for cmd_handler in self.runner.handler._handlers['commands']:
+            target_command = cmd_handler['command']
+            target_command_lower = {k.lower(): v for k, v in target_command.items()}
+            if first_word in target_command_lower:
+                target_function = target_command_lower[first_word]
+                sig = inspect.signature(target_function)
+                total_params_count = len(sig.parameters)
+                has_state = False
+                for param in sig.parameters.values():
+                    if param.annotation == FSMContext:
+                        has_state = True
+                        break
+                if has_state:
+                    await target_function(message, state_ctx, *args)
+                else:
+                    await target_function(message, *args)
+                return True
+            return False
+
     async def _trigger_message_handlers(self, message):
         if self.runner._account.username == message.sender:
             return
         msg_text = message.text.lower()
         current_state = await self.runner.storage.get_state(message.chat_id)
         state_ctx = FSMContext(storage=self.runner.storage, chat_id=message.chat_id)
+        if await self._process_message(message, state_ctx):
+            return
         for handler in self.runner.handler._handlers['message']:
             if handler['state'] != current_state:
                 continue
             async def call_handler(h_func):
                 sig = inspect.signature(h_func)
-                if len(sig.parameters) >= 2:
+                has_state = False
+                for param in sig.parameters.values():
+                    if param.annotation == FSMContext:
+                        has_state = True
+                        break
+                if has_state:
                     await h_func(message, state_ctx)
                 else:
                     await h_func(message)

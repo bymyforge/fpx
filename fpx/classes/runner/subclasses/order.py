@@ -45,12 +45,18 @@ class OrderRunner:
             matched = False
             for trigger in handler['mapping']:
                 if trigger.lower() in msg_text:
+                    order.finded_mapping = trigger
                     matched = True
                     break
                 if not matched:
                     return False
         sig = inspect.signature(h_func)
-        if len(sig.parameters) >= 2:
+        has_state = False
+        for param in sig.parameters.values():
+            if param.annotation == FSMContext:
+                has_state = True
+                break
+        if has_state:
             await h_func(order, state_ctx)
         else:
             await h_func(order)

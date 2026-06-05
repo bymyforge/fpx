@@ -74,3 +74,8 @@ class FpxCriticalRunnerError(FpxRunnerError):
     """Критический сбой раннера, требующий остановки или жесткого перезапуска."""
     def __init__(self, message='Критический сбой раннера, требующий остановки или жесткого перезапуска'):
         super().__init__(message)
+
+class FpxAttributeError(FpxRunnerError):
+    """Неправильно переданы аттрибуты."""
+    def __init__(self, message='Неправильно переданы аттрибуты'):
+        super().__init__(message)
