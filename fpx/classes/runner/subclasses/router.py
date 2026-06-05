@@ -13,11 +13,19 @@ class Router:
             'lot_category': [],
             'chip_category': [],
             'commands': [],
+            'error': [],
 
             # системные
             'startup': [],
             'flood': []
         }
+
+    def on_error(self):
+        '''Декоратор для отлова ошибок'''
+        def decorator(func):
+            self._handlers['error'] = func
+            return func
+        return decorator
         
     def on_message(
         self,

@@ -1,7 +1,11 @@
 import inspect
+import logging
 
 from fpx.models.chat import Message
 from fpx.fsm import FSMContext
+from fpx.utils import errors as fpx_err
+
+logger = logging.getLogger("fpx.chat_runner")
 
 class ChatRunner:
     def __init__(self, runner):
@@ -58,11 +62,25 @@ class ChatRunner:
                         has_state = True
                         break
                 if has_state:
-                    await target_function(message, state_ctx, *args)
+                    required_args = total_params_count - 2
+                    alowed_args_count = max(0, required_args)
+                    final_args = args[:alowed_args_count]
+                    if len(args) < required_args:
+                        param_names = list(sig.parameters.keys())
+                        missing_param = param_names[2 + len(args)]
+                        raise fpx_err.FpxCommandArgsError(target_function.__name__, missing_param)
+                    await target_function(message, state_ctx, *final_args)
                 else:
-                    await target_function(message, *args)
+                    required_args = total_params_count - 1
+                    alowed_args_count = max(0, required_args)
+                    final_args = args[:alowed_args_count]
+                    if len(args) < required_args:
+                        param_names = list(sig.parameters.keys())
+                        missing_param = param_names[1 + len(args)]
+                        raise fpx_err.FpxCommandArgsError(target_function.__name__, missing_param)
+                    await target_function(message, *final_args)
                 return True
-            return False
+        return False
 
     async def _trigger_message_handlers(self, message):
         if self.runner._account.username == message.sender:
@@ -70,8 +88,14 @@ class ChatRunner:
         msg_text = message.text.lower()
         current_state = await self.runner.storage.get_state(message.chat_id)
         state_ctx = FSMContext(storage=self.runner.storage, chat_id=message.chat_id)
-        if await self._process_message(message, state_ctx):
-            return
+        try:
+            if await self._process_message(message, state_ctx):
+                return
+        except fpx_err.FpxCommandArgsError as e:
+            if self.runner.handler._handlers['error']:
+                await self.runner.handler._handlers['error'](message, e)
+            else:
+                logger.debug(f'Клиент забыл передать аргумент в команду!')
         for handler in self.runner.handler._handlers['message']:
             if handler['state'] != current_state:
                 continue

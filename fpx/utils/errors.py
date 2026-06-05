@@ -22,6 +22,11 @@ class FpxRunnerError(FpxError):
     def __init__(self, message='Ошибка раннера'):
         super().__init__(message)
 
+class FpxHandlerError(FpxError):
+    """Ошибки хендлера."""
+    def __init__(self, message='Ошибка раннера'):
+        super().__init__(message)
+
 # Третий уровень, конкретные ошибки
 
 
@@ -75,7 +80,16 @@ class FpxCriticalRunnerError(FpxRunnerError):
     def __init__(self, message='Критический сбой раннера, требующий остановки или жесткого перезапуска'):
         super().__init__(message)
 
-class FpxAttributeError(FpxRunnerError):
+# --- Ошибки хендлера ---
+
+class FpxAttributeError(FpxHandlerError):
     """Неправильно переданы аттрибуты."""
     def __init__(self, message='Неправильно переданы аттрибуты'):
         super().__init__(message)
+
+class FpxCommandArgsError(FpxHandlerError):
+    """Вызывается, когда функция команды ожидает аргументы, но в сообщении их передали меньше, чем нужно."""
+    def __init__(self, function_name, missing_arg):
+        self.function_name = function_name
+        self.missing_arg = missing_arg
+        super().__init__(f"Команда '{function_name}' ожидает аргумент '{missing_arg}', но он не был передан в чате.")
