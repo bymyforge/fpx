@@ -65,21 +65,23 @@ class Runner:
         '''
         if is_background:
             asyncio.create_task(self._run_loop(timer, watch_lots, watch_chips))
-            await self.idle()
         else:
             await self._run_loop(timer, watch_lots, watch_chips)
 
     async def _warm_up(self, watch_lots, watch_chips):
         '''Прогрев кеша'''
         await self._account.profile.get_user_data()
-        for _ in range(2):
-            if watch_lots:
-                await self._category._check_lot_categories(watch_lots)
-            if watch_chips:
-                await self._category._check_chip_categories(watch_chips)
-            await self._chat._update_chat_cache()
-            await self._order._update_order_cache()
-            await self._review._update_review_cache()
+        tasks = []
+        if watch_lots:
+            tasks.append(self._category._check_lot_categories(watch_lots))
+        if watch_chips:
+            tasks.append(self._category._check_chip_categories(watch_chips))
+        tasks.extend([
+            self._chat._update_chat_cache(),
+            self._order._update_order_cache(),
+            self._review._update_review_cache()
+        ])
+        await asyncio.gather(*tasks)
         self._cache_is_updated = True
         for handler in self.handler._handlers['startup']:
             asyncio.create_task(handler())
@@ -89,10 +91,14 @@ class Runner:
         if not self._cache_is_updated:
             await self._warm_up(watch_lots, watch_chips)
             return
+        tasks = []
         if watch_lots:
-            await self._category._check_lot_categories(watch_lots)
+            tasks.append(self._category._check_lot_categories(watch_lots))
         if watch_chips:
-            await self._category._check_chip_categories(watch_chips)
-        await self._chat._check_chats()
-        await self._order._check_orders()
-        await self._review._check_reviews()
+            tasks.append(self._category._check_chip_categories(watch_chips))
+        tasks.extend([
+            self._chat._check_chats(),
+            self._order._check_orders(),
+            self._review._check_reviews()
+        ])
+        await asyncio.gather(*tasks)

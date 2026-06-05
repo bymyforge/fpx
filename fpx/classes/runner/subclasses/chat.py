@@ -1,5 +1,6 @@
 import inspect
 import logging
+import asyncio
 
 from fpx.models.chat import Message
 from fpx.fsm import FSMContext
@@ -33,7 +34,7 @@ class ChatRunner:
         result = []
         counter = 0
         for chat in chats:
-            if counter > 30:
+            if counter > 75:
                 break
             chat = {'sender': chat.username, 'chat_id': chat.id, 'last_msg': chat.last_msg}
             result.append(chat)
@@ -91,11 +92,12 @@ class ChatRunner:
         try:
             if await self._process_message(message, state_ctx):
                 return
-        except fpx_err.FpxCommandArgsError as e:
+        except Exception as e:
             if self.runner.handler._handlers['error']:
                 await self.runner.handler._handlers['error'](message, e)
             else:
-                logger.debug(f'Клиент забыл передать аргумент в команду!')
+                logger.debug(f'Ошибка при обработке сообщения: {e}', exc_info=True)
+            return
         for handler in self.runner.handler._handlers['message']:
             if handler['state'] != current_state:
                 continue
@@ -140,9 +142,19 @@ class ChatRunner:
         await self.runner._chat._update_chat_cache()
         chats = await self.runner._chat._compare_chat_cache()
         if chats:
-            for chat in chats:
-                msg_obj = await self.runner._account.chat.get_chat_data(chat.chat_id)
-                message = msg_obj.last_message
-                chat = Message(sender=message['sender'], chat_id=chat.chat_id, text=chat.text, is_system=message['is_system'])   
-                chat._client = self.runner
-                await self._trigger_message_handlers(chat)
+            async def process_single_chat(chat_cache_obj):
+                try:
+                    msg_obj = await self.runner._account.chat.get_chat_data(chat_cache_obj.chat_id)
+                    message = msg_obj.last_message
+                    chat_msg = Message(
+                        sender=message['sender'], 
+                        chat_id=chat_cache_obj.chat_id, 
+                        text=chat_cache_obj.text, 
+                        is_system=message['is_system']
+                    )   
+                    chat_msg._client = self.runner
+                    await self._trigger_message_handlers(chat_msg)
+                except Exception as e:
+                    logger.error(f"Ошибка при параллельной обработке чата {chat_cache_obj.chat_id}: {e}", exc_info=True)
+            tasks = [process_single_chat(chat) for chat in chats]
+            await asyncio.gather(*tasks)
