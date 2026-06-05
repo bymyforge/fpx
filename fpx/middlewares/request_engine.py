@@ -30,15 +30,16 @@ class RequestEngine:
                 response = await self._client.request(method, url, **kwargs)
                 # флуд контроль
                 if response.status_code == 429:
-                    sleep_time = int(response.headers.get('Retry-After'), 5)
+                    sleep_time = int(response.headers.get('Retry-After', 5))
                     if self.runner:
                         for handler in self.runner.handler._handlers['flood']:
                             asyncio.create_task(handler(sleep_time))
                     await asyncio.sleep(sleep_time)
                     return await self.execute(method, url, **kwargs)
-                # если чето сервер не ответил
+                # если сервер не ответил
                 if str(response.status_code).startswith("5"): # чтобы принимать не только 502-504
                     sleep_time = backoff * attempt
+                    raise fpx_err.FpxRequestError(message=f'{method.upper()} запрос упал по шатдауну сервера. Ошибка: {e}')
                     await asyncio.sleep(sleep_time)
                     continue
                 return response
