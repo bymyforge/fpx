@@ -48,7 +48,7 @@ class Runner:
                 await asyncio.sleep(timer)
             except fpx_err.FpxRequestError:
                 await asyncio.sleep(60)
-            except (httpx.ConnectTimeout, httpx.RemoteProtocolError, httpx.ReadTimeout, httpx.ConnectError):
+            except (httpx.HTTPError, httpx.NetworkError):
                 await asyncio.sleep(timer)
             except Exception as e:
                 raise fpx_err.FpxCriticalRunnerError(message=str(e))

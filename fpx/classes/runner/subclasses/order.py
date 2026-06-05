@@ -61,6 +61,33 @@ class OrderRunner:
         else:
             await h_func(order)
 
+    async def _check_trigger_for_command(self, order: Order, state_ctx: FSMContext):
+        if order.description is None:
+            return False
+        for cmd_handler in self.runner.handler._handlers['order_command']:
+            target_command = cmd_handler['trigger_command']
+            target_command_lower = {k.lower(): v for k, v in target_command.items()}
+            target_function = None
+            for command_name in target_command_lower:
+                if command_name in order.description.lower():
+                    target_function = target_command_lower[command_name]
+                    order.finded_mapping = command_name
+                    break 
+            if target_function is None:
+                continue
+            sig = inspect.signature(target_function)
+            has_state = False
+            for param in sig.parameters.values():
+                if param.annotation == FSMContext:
+                    has_state = True
+                    break
+            if has_state:
+                await target_function(order, state_ctx)
+            else:
+                await target_function(order)
+            return True
+        return False
+
     async def _trigger_order_handlers(self, order: Order):
         state_ctx = FSMContext(self.runner.storage, order.chat_id)
         status = order.status.lower()
@@ -69,9 +96,10 @@ class OrderRunner:
         if status in ('закрыт', 'closed', 'закрито'):
             for handler in self.runner.handler._handlers['confirmed_order']:
                 await self._check_handler(handler, order, state_ctx)
-        elif status in('оплачен', 'оплачено', 'paid', 'opened', 'відкрито'):
+        elif status in ('оплачен', 'оплачено', 'paid', 'відкрито'):
             for handler in self.runner.handler._handlers['new_order']:
                 await self._check_handler(handler, order, state_ctx)
+            await self._check_trigger_for_command(order, state_ctx)
         elif status in ('возврат', 'повернення', 'refund'):
             for handler in self.runner.handler._handlers['refund']:
                 await self._check_handler(handler, order, state_ctx)

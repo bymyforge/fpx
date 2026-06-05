@@ -14,6 +14,7 @@ class Router:
             'chip_category': [],
             'commands': [],
             'error': [],
+            'order_command': [],
 
             # системные
             'startup': [],
@@ -119,7 +120,7 @@ class Router:
         self, 
         mapping: list | None = None, 
         trigger_with_command: dict | None = None
-        ):
+    ):
         '''
         Декоратор, который отслеживает только новые заказы.
 
@@ -133,11 +134,21 @@ class Router:
                 - name (str): Название товара   
                 - anwer (method): При указании текста в аргументах, отвечает на сообщение       
         '''
+        if trigger_with_command and mapping is not None:
+            raise fpx_err.FpxAttributeError(f'В хендлер on_new_order неправильно переданы аттрибуты:'
+            'Аттрибут trigger_with_command должен передаваться одиночно')
         def decorator(func):
-            self._handlers['new_order'].append({
-                'function': func,
-                'mapping': mapping
-            })
+            if trigger_with_command:
+                self._handlers['order_command'].append({
+                    'function': func,
+                    'mapping': mapping,
+                    'trigger_command': trigger_with_command  
+                })
+            else:
+                self._handlers['new_order'].append({
+                    'function': func,
+                    'mapping': mapping
+                })
             return func
         return decorator
     
