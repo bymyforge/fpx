@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 
 from bs4 import BeautifulSoup
 
@@ -11,7 +12,7 @@ logger = logging.getLogger("fpx.profile_parser")
 
 class ProfileParser(BaseParser):
     @classmethod
-    def parse_finanses(html_content: str):
+    def parse_finanses(cls, html_content: str):
         soup = BeautifulSoup(html_content, 'html.parser')
         balances_container = soup.find('span', class_='balances-list')
         if not balances_container:
@@ -19,7 +20,7 @@ class ProfileParser(BaseParser):
         values = balances_container.find_all('span', class_='balances-value')
         if not values:
             raise fpx_err.FpxNullDataError('На странице финансов не найдено баланса')
-        clean_values = [v.text.strip() for v in values]
+        clean_values = [cls.clean_text(v) for v in values]
         data = {}
         for i in clean_values:
             try:
@@ -36,10 +37,10 @@ class ProfileParser(BaseParser):
         return Balance(**data)
 
     @classmethod
-    def parse_profile(html_content: str):
+    def parse_profile(cls, html_content: str):
         soup = BeautifulSoup(html_content, 'html.parser')
-        offer_list = soup.find_all('div', class_='offer')
-        review_list = soup.find_all('div', class_='review-compiled-review')
+        offer_list = soup.find_all('div', class_='offer') or soup.find_all('div', attrs={'data-id': True})
+        review_list = soup.find_all('div', class_='review-compiled-review') or soup.find_all('div', class_='review-item')
         if not offer_list or not review_list:
             logger.debug('На странице профиля не найден блок категорий или блок отзывов. Возможно ошибка или их просто не существует')
         category_ids = set()
@@ -69,14 +70,32 @@ class ProfileParser(BaseParser):
         for review in review_list:
             try:
                 rev = {}
-                rev['text'] = review.find('div', class_='review-item-text').get_text(strip=True)
-                rate_div = review.find('div', class_='rating').find('div', class_=True)
-                rating = rate_div['class'][0]
-                rev['stars'] = int(rating.replace('rating', ''))
-                rev['author'] = review.find('div', class_='media-user-name').get_text(strip=True)
-                rev['detail'] = review.find('div', class_='review-item-detail').get_text(strip=True)
-                order_id = review.find('div', class_='review-item-order')
-                rev['order_id'] = order_id.find('a').get('href').split('/')[-2]
+                text_tag = review.find('div', class_='review-item-text') or review.find('div')
+                rev['text'] = cls.clean_text(text_tag)
+                rate_div = review.find('div', class_='rating')
+                if rate_div:
+                    inner_div = rate_div.find('div', class_=True)
+                    if inner_div:
+                        classes_str = "".join(inner_div['class'])
+                        match = re.search(r'\d+', classes_str)
+                        rev['stars'] = int(match.group()) if match else 0
+                    else:
+                        rev['stars'] = 0
+                else:
+                    rev['stars'] = 0
+                author_tag = review.find('div', class_='media-user-name') or review.find('span', class_='pseudo-a')
+                rev['author'] = cls.clean_text(author_tag) if author_tag else 'Unknown'
+                detail_tag = review.find('div', class_='review-item-detail')
+                rev['detail'] = cls.clean_text(detail_tag)
+                order_div = review.find('div', class_='review-item-order')
+                if order_div:
+                    a_tag = order_div.find('a', href=True)
+                    if a_tag:
+                        rev['order_id'] = a_tag['href'].strip('/').split('/')[-1]
+                    else:
+                        rev['order_id'] = ''
+                else:
+                    rev['order_id'] = ''
                 reviews.append(rev)
             except Exception as e:
                 logger.debug(f'При парсинге конкретного отзыва возникла ошибка: {e}')
@@ -86,22 +105,24 @@ class ProfileParser(BaseParser):
         return {'category-ids': list(category_ids), 'lots': lots, 'reviews': reviews}
 
     @classmethod
-    def parse_my_sells(html_content):
+    def parse_my_sells(cls, html_content):
         result = []
         soup = BeautifulSoup(html_content, 'html.parser')
         tc_items = soup.find_all('a', class_='tc-item')
+        if not tc_items:
+            tc_items = soup.find_all('a', href=lambda h: h and '/orders/' in h)
         if not tc_items:
             raise fpx_err.FpxNullDataError('На странице продаж не найдено объектов(tc-item)')
         for item in tc_items:
             try:
                 pre_result = {}
-                order_tag = item.find('div', class_='tc-order')
+                order_tag = item.find('div', class_='tc-order') or item.find('div', class_=lambda c: c and 'order' in c)
                 pre_result['order-id'] = order_tag.get_text(strip=True).replace('#', '') if order_tag else "Unknown"
                 time_tag = item.find('div', class_='tc-date-time')
                 pre_result['order-time'] = time_tag.get_text(strip=True) if time_tag else ""
                 status_tag = item.find('div', class_='tc-status')
                 pre_result['status'] = status_tag.get_text(strip=True) if status_tag else "Unknown"
-                client_tag = item.find('span', class_='pseudo-a') or item.find('div', class_='tc-user')
+                client_tag = item.find('span', class_='pseudo-a') or item.find('div', class_='tc-user') or item.find('div', class_=lambda c: c and 'user' in c)
                 pre_result['client-name'] = client_tag.get_text(strip=True) if client_tag else "Unknown"
                 price_tag = item.find('div', class_='tc-price')
                 if price_tag:
@@ -112,12 +133,24 @@ class ProfileParser(BaseParser):
                     pre_result['price'] = 0.0
                 order_desc = item.find('div', class_='order-desc')
                 if order_desc:
-                    divs = order_desc.find_all('div')
-                    pre_result['name'] = divs[0].get_text(strip=True) if len(divs) > 0 else "Unknown"
+                    divs = order_desc.find_all(['div', 'span', 'p'], recursive=False)
+                    if not divs:
+                        divs = [order_desc]
+                    raw_name = divs[0].get_text(strip=True) if len(divs) > 0 else "Unknown"
+                    pre_result['name'] = raw_name
                     pre_result['category'] = divs[1].get_text(strip=True) if len(divs) > 1 else "Unknown"
+                    amount_match = re.search(r'(\d+)\s*(?:шт\.?|pcs\.?)', raw_name, re.IGNORECASE)
+                    if amount_match:
+                        try:
+                            pre_result['amount'] = int(amount_match.group(1))
+                        except ValueError:
+                            pre_result['amount'] = 1
+                    else:
+                        pre_result['amount'] = 1
                 else:
                     pre_result['name'] = "Unknown"
                     pre_result['category'] = "Unknown"
+                    pre_result['amount'] = 1
                 result.append(pre_result)
             except Exception as e:
                 logger.debug(f'При парсинге конкретного объекта произошла ошибка: {e}')
@@ -127,16 +160,19 @@ class ProfileParser(BaseParser):
         return result
 
     @classmethod
-    def parse_main_menu(html_content: str):
+    def parse_main_menu(cls, html_content: str):
         soup = BeautifulSoup(html_content, 'html.parser')
         user_link = soup.find('a', class_='user-link-dropdown')
+        if not user_link:
+            user_link = soup.find('a', href=lambda h: h and '/users/' in h)
         result = {}
         if user_link:
             href = user_link.get('href', '')
             user_id = href.strip('/').split('/')[-1]
             if user_id.isdigit():
                 result['user-id'] = user_id
-                result['username'] = soup.find('div', class_='user-link-name').get_text(strip=True)
+                name_tag = soup.find('div', class_='user-link-name') or user_link.find('div') or user_link
+                result['username'] = cls.clean_text(name_tag) if name_tag else "Unknown"
             else:
                 raise fpx_err.FpxParseError('Не удалось извлечь цифровой ID юзера, возможно слетела сессия или изменилась вёрстка')
         else:

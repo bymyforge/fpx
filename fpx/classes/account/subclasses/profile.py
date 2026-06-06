@@ -56,7 +56,8 @@ class ProfileManager:
                 price=i['price'],
                 status=i['status'],
                 name=i['name'],
-                category=i['category']
+                category=i['category'],
+                amount=i['amount']
             )
             result.append(order)
             counter += 1

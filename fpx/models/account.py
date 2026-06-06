@@ -64,6 +64,7 @@ class Order:
     description: Optional[str] = None
     client_name: Optional[str] = None
     price: Optional[float] = None
+    amount: Optional[int] = None
     finded_mapping: Optional[str] = None
     status: Optional[str] = None
     name: Optional[str] = None
