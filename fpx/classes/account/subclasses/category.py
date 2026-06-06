@@ -14,7 +14,7 @@ class CategoryManager:
             lot_category_id (int | str): ID категории лота      
 
         Returns:
-            CategoryLastLot: Объект, содержащий в себе:     
+            List[CategoryLastLot]: Объект, содержащий в себе:     
                 - category_id (str): ID категории       
                 - filtration (str): Название фильтра    
                 - price (float): Цена лота      
@@ -30,13 +30,13 @@ class CategoryManager:
 
     async def get_chip_category_last_lot(self, chip_category_id):
         '''
-        Находит самый дешевый лот в категории по каждому из фильтров.  
+        Находит самый дешевый лот краткий в категории по каждому из фильтров.  
 
         Args:
             lot_category_id (int | str): ID категории лота          
 
         Returns:
-            CategoryLastLot: Объект, содержащий в себе:          
+            List[CategoryLastLot]: Объект, содержащий в себе:          
                 - category_id (str): ID категории   
                 - filtration (str): Название фильтра    
                 - price (float): Цена лота  

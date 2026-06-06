@@ -1,6 +1,6 @@
 
 from fpx.api.client import FunPayClient
-from fpx.api.parsers import FunPayParser
+from fpx.parsers import FpxParser
 from fpx.classes.account.subclasses.chat import ChatManager
 from fpx.classes.account.subclasses.addons import AddonsManager
 from fpx.classes.account.subclasses.profile import ProfileManager
@@ -19,7 +19,7 @@ class Account:
         self.http_client = client
         self.client = FunPayClient(self, self.http_client)
         self._request_engine = RequestEngine(self, self.http_client)
-        self.parser = FunPayParser()
+        self.parser = FpxParser()
         self.username = None
         self.user_id = None
         self._csrf_token = None

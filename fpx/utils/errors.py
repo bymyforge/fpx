@@ -31,6 +31,11 @@ class FpxHandlerError(FpxError):
 
 
 # аккаунт
+class FpxGetChatsError(FpxAccountError):
+    """Не удалось запросить чаты."""
+    def __init__(self, message='Не удалось запросить чаты.'):
+        super().__init__(message)
+
 class FpxMessageDeliverError(FpxAccountError):
     """Сообщение не было доставлено."""
     def __init__(self, message='Сообщение не было доставлено'):

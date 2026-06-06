@@ -10,20 +10,28 @@ class ChatManager:
         Собирает все чаты на аккаунте.
 
         Returns:
-            list: Список объектов чатов. Каждый содержит:   
+            list[Chat]: Список объектов чатов. Каждый содержит:   
                 - id (str): ID чата (node_id).  
                 - username (str): Имя клиента.  
                 - last_msg (str): Последнее сообщение в чате.   
                 - date (str): Дата последнего сообщения.    
                 - link (str): Полная ссылка на чат. 
                 - is_unread (bool): Прочитано или нет (True, если не прочитано).    
+        
+        Raises:
+            FpxGetChatsError: Ошибка получения чатов FunPay
 
         """
-        html = await self.account.client.get_chats_page()
-        chats = self.account.parser.parse_chats_list(html)
+        step = 'запрос страницы чатов с FunPay'
+        try:
+            html = await self.account.client.get_chats_page()
+            step = 'парсинг данных чатов'
+            chats = self.account.parser.parse_chats_list(html)
+        except Exception as e:
+            raise fpx_err.FpxGetChatsError(f'Не удалось выполнить {step}. Ошибка: {e}')
         return chats
 
-    async def send_message(self, chat_id:str, text:str, with_nodes: bool = False):
+    async def send_message(self, chat_id: str, text: str, with_nodes: bool = False):
         """
         Отправляет сообщение.  
 
@@ -35,13 +43,18 @@ class ChatManager:
             bool: True, если сообщение отправлено   
 
         Raises:
-            MessageNotDelivered: Если не удалось отправить сообщение.   
+            FpxMessageNotDelivered: Если не удалось отправить сообщение.   
         
         """
-        if chat_id not in self.account._node_names or not self.account._csrf_token:
-            await self.get_chat_data(chat_id)
-        response = await self.account.client.send_message_request(self.account._node_names[chat_id], -1, text)
-        inner_response = response.get('response', {})
+        step = f'запрос данных чата ID {chat_id}'
+        try:
+            if chat_id not in self.account._node_names or not self.account._csrf_token:
+                await self.get_chat_data(chat_id)
+            step = f'POST запрос на отправку сообщения {text} в чат ID {chat_id}'
+            response = await self.account.client.send_message_request(self.account._node_names[chat_id], -1, text)
+            inner_response = response.get('response', {})
+        except Exception as e:
+            raise fpx_err.FpxMessageDeliverError(f'Не удалось выполнить {step}. Ошибка: {e}')
         if inner_response.get('error') is None:
             return True
         else:
