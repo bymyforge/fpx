@@ -12,7 +12,7 @@ logger = logging.getLogger("fpx.profile_parser")
 class LotParser(BaseParser):
 
     @classmethod
-    def parse_lot_menu(html_content: str):
+    def parse_lot_menu(cls, html_content: str):
         soup = BeautifulSoup(html_content, 'html.parser')
         button = soup.find('button', class_='js-lot-raise')
         if not button:
@@ -25,7 +25,7 @@ class LotParser(BaseParser):
         raise fpx_err.FpxNullDataError('На странице лотов не найдена кнопка для поднятия. Возможно у вас нет созданных лотов')
 
     @classmethod
-    def parse_current_lot_menu(html_content):
+    def parse_current_lot_menu(cls, html_content):
         result = {}
         soup = BeautifulSoup(html_content, 'html.parser')
         param_items = soup.find_all('div', class_='param-item')
@@ -64,7 +64,7 @@ class LotParser(BaseParser):
             raise fpx_err.FpxNullDataError('Не удалось найти цену в скрытых атрибутах выбора оплаты.')
     
     @classmethod
-    def parse_edit_lot_page(html_content):
+    def parse_edit_lot_page(cls, html_content):
         soup = BeautifulSoup(html_content, 'html.parser')
         result = {}
         hidden_inputs = soup.find_all('input', type='hidden')

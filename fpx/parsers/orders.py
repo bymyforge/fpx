@@ -11,7 +11,7 @@ logger = logging.getLogger("fpx.order_parser")
 
 class OrderParser(BaseParser):
     @classmethod
-    def parse_order_page(html_content):
+    def parse_order_page(cls, html_content):
         soup = BeautifulSoup(html_content, 'html.parser')
         result = {}
         result['review'] = {}
@@ -78,7 +78,7 @@ class OrderParser(BaseParser):
         return result
 
     @classmethod
-    def parse_category_page(html_content):
+    def parse_category_page(cls, html_content):
         soup = BeautifulSoup(html_content, 'html.parser')
         lowcoasters = {}
         buttons = soup.select('div.lot-field-radio-box button')
@@ -107,7 +107,7 @@ class OrderParser(BaseParser):
                 username_el = lot.find('span', class_='pseudo-a') or lot.select_one('.media-user-name span')
                 owner_username = username_el.get_text(strip=True) if username_el else "Unknown"
                 url = lot.get('href', '')
-                offer_id = url.split('=')[-1] if '=' in url else url
+                offer_id = url.split('=')[-1] if '=' in url else url.rstrip('/').split('/')[-1]
                 return [{
                         'filtration': 'все',
                         'price': lot_price,

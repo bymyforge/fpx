@@ -14,7 +14,7 @@ logger = logging.getLogger("fpx.chat_parser")
 class ChatParser(BaseParser):
 
     @classmethod
-    def parse_chats_list(html_content: str) -> list[Chat]:
+    def parse_chats_list(cls, html_content: str) -> list[Chat]:
         soup = BeautifulSoup(html_content, 'html.parser')
         items = soup.find_all('a', class_='contact-item')
         if not items:
@@ -43,7 +43,7 @@ class ChatParser(BaseParser):
         return chats
 
     @classmethod
-    def parse_chat(html_content: str):
+    def parse_chat(cls, html_content: str):
             soup = BeautifulSoup(html_content, 'html.parser')
             result = {}
             chat_div = soup.find('div', class_='chat')
