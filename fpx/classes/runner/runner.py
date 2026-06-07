@@ -46,6 +46,9 @@ class Runner:
             try:
                 await self._cache_runner(watch_lots, watch_chips)
                 await asyncio.sleep(timer)
+            except fpx_err.FpxAccountError as e:
+                await asyncio.sleep(5)
+                continue
             except fpx_err.FpxRequestError:
                 await asyncio.sleep(60)
             except (httpx.HTTPError, httpx.NetworkError):

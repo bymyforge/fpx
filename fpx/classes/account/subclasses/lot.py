@@ -22,9 +22,16 @@ class LotManager:
                 - location (str): Обычно пустой.  
                 - deleted (str): Обычно пустой.  
                 - fields (dict): Словарь с филдами, нет фиксированного кол-ва филдов, просто отправляйте все.  
+        Raises:
+            FpxGetLotEditorInfoError: ошибка поулучения данных редактора
         '''
-        html = await self._account._client.get_lot_editor_data(lot_id)
-        data = self._account._parser.parse_edit_lot_page(html)
+        try:
+            stage = 'запроса данных с FunPay'
+            html = await self._account._client.get_lot_editor_data(lot_id)
+            stage = 'парсинга данных'
+            data = self._account._parser.parse_edit_lot_page(html)
+        except Exception as e:
+            raise fpx_err.FpxGetLotEditorInfoError(f'При выполнении {stage} произошла ошибка: {e}')
         base_fields = ['csrf_token', 'form_created_at', 'offer_id', 'node_id', 'location', 'deleted']
         main_data = {k: v for k, v in data.items() if k in base_fields}
         other_fields = {k: v for k, v in data.items() if k not in base_fields}
@@ -42,14 +49,22 @@ class LotManager:
                 - short_desc (str): Краткое описание.   
                 - description (str): Полное описание.  
                 - price (float): Цена лота.  
+        Raises:
+            FpxGetLotInfoError: Ошибка запроса данных лота
         '''
-        html = await self._account._client.get_lot_info(lot_id)
-        data = self._account._parser.parse_current_lot_menu(html)
-        lot = CurrentLotInfo(
-            short_desc=data['short_desc'],
-            description=data['description'],
-            price=float(data['price'])
-        )
+        try:
+            stage = 'запроса данных'
+            html = await self._account._client.get_lot_info(lot_id)
+            stage = 'парсинга данных'
+            data = self._account._parser.parse_current_lot_menu(html)
+            stage = 'типизации данных'
+            lot = CurrentLotInfo(
+                short_desc=data['short_desc'],
+                description=data['description'],
+                price=float(data['price'])
+            )
+        except Exception as e:
+            raise fpx_err.FpxGetLotInfoError(f'При выполнении {stage} произошла ошибка: {e}')
         return lot
 
     async def raise_lots(self):
@@ -59,8 +74,7 @@ class LotManager:
         Returns:
             list: Ответы от сервера. 
         Raises:
-            NullData: Ни один лот не найден.
-            RaisingLotError: Лот не поднят. 
+            FpxRaisingLotError: Лот не поднят. 
         '''
         if not self._account.data._csrf_token:
             await self._account.profile.get_user_data()
@@ -68,11 +82,11 @@ class LotManager:
             profile = await self._account.profile.profile()
             category_list = profile.category_ids
             if not category_list:
-                raise fpx_err.FpxRaisingLotError('Нам нечего поднимать!')
+                raise fpx_err.FpxRaisingLotError('Нам нечего поднимать')
             response = []
             for node_id in category_list:
                 game_id = await self._account.addons.get_game_id(node_id)
                 response.append(await self._account._client.raise_lot(node_id, game_id))
             return response
         except Exception as e:
-            raise RaisingLotError(message=e)
+            raise fpx_err.FpxRaisingLotError(message=e)

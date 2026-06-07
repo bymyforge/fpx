@@ -18,10 +18,18 @@ class OrderManager:
                 - review (dict): Словарь с данными отзыва, который оставили к заказу.   
                 - description (str): Строка с подробным описанием заказа    
                 - chat_id (str): ID чата    
+        Raises:
+            FpxGetOrderInfoError: Ошибка запроса данных заказа
         '''
-        html = await self._account._client.get_order_info(order_id)
-        data = self._account._parser.parse_order_page(html)
-        order = Order(order_id=order_id, status=data['status'], review=data['review'], description=data['desc'], chat_id=data['chat_id'])
+        try:
+            stage = 'запроса данных FunPay'
+            html = await self._account._client.get_order_info(order_id)
+            stage = 'парсинга данных'
+            data = self._account._parser.parse_order_page(html)
+            stage = 'типизации данныз'
+            order = Order(order_id=order_id, status=data['status'], review=data['review'], description=data['desc'], chat_id=data['chat_id'])
+        except Exception as e:
+            raise fpx_err.FpxGetOrderInfoError(f'При выполнении {stage} произошла ошибка: {e}')
         return order
 
     async def refund_order(self, order_id):

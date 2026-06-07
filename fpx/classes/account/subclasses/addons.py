@@ -1,4 +1,5 @@
 
+from fpx.utils import errors as fpx_err
 
 
 class AddonsManager:
@@ -14,7 +15,15 @@ class AddonsManager:
                 
         Returns:    
             str | int: ID игры.
+
+        Raises:
+            FpxGetGameIDError: Ошибка запроса ID игры
         """
-        html = await self._account._client.lot_menu_by_category(category_id)
-        data = self._account._parser.parse_lot_menu(html)
+        try:
+            stage = 'запроса данных категории с FunPay'
+            html = await self._account._client.lot_menu_by_category(category_id)
+            stage = 'парсинга данных'
+            data = self._account._parser.parse_lot_menu(html)
+        except Exception as e:
+            raise fpx_err.FpxGetGameIDError(f'При выполнении {stage} произошла ошибка: {e}')
         return data

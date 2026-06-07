@@ -19,7 +19,9 @@ class FunPayTools:
             cookies=self._cookies,
             headers=self._headers,
             base_url='https://funpay.com',
-            follow_redirects=True
+            follow_redirects=True,
+            limits=httpx.Limits(max_keepalive_connections=5, max_connections=10),
+            timeout=httpx.Timeout(15.0)
         )
         self.account = Account(self._client)
         self.runner = Runner(self.account)

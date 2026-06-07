@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from fpx.models.lots import CategoryLastLot
+from fpx.utils import errors as fpx_err
 
 class CategoryManager:
     def __init__(self, account):
@@ -19,10 +20,17 @@ class CategoryManager:
                 - filtration (str): Название фильтра    
                 - price (float): Цена лота      
                 - offer_id (str): ID лота       
-                - owner_username (str): Юзернейм владельца лота         
+                - owner_username (str): Юзернейм владельца лота       
+        Raises:
+            FpxGetLastCategoryLotError: Ошибка запроса последней категории
         '''
-        html = await self._account._client.get_lot_category(lot_category_id)
-        data = self._account._parser.parse_category_page(html)
+        try:
+            stage = 'запроса данных с FunPay'
+            html = await self._account._client.get_lot_category(lot_category_id)
+            stage = 'парсингa данных'
+            data = self._account._parser.parse_category_page(html)
+        except Exception as e:
+            raise fpx_err.FpxGetLastCategoryLotError(f'При выполнении {stage} произошла ошибка: {e}')
         result = []
         for e in data:
             result.append(CategoryLastLot(category_id=lot_category_id, **e))
@@ -41,10 +49,17 @@ class CategoryManager:
                 - filtration (str): Название фильтра    
                 - price (float): Цена лота  
                 - offer_id (str): ID лота   
-                - owner_username (str): Юзернейм владельца лота   
+                - owner_username (str): Юзернейм владельца лота     
+            Raises:
+                FpxGetLastCategoryLotError: Ошибка запроса последней категории  
         '''
-        html = await self._account._client.get_chip_category(chip_category_id)
-        data = self._account._parser.parse_category_page(html)
+        try:
+            stage = 'запроса данных с FunPay'
+            html = await self._account._client.get_chip_category(chip_category_id)
+            stage = 'парсинга данных'
+            data = self._account._parser.parse_category_page(html)
+        except Exception as e:
+            raise fpx_err.FpxGetLastCategoryLotError(f'При выполнении {stage} произошла ошибка: {e}')
         result = []
         for e in data:
             result.append(CategoryLastLot(category_id=chip_category_id, **e))

@@ -61,7 +61,7 @@ class ChatManager:
             error_msg = inner_response.get('error', 'Неизвестная ошибка')
             raise fpx_err.FpxMessageDeliverError(f'Сервер вернул ошибку: {error_msg}')
 
-    async def get_chat_data(self, chat_id):
+    async def get_chat_data(self, chat_id: int | str):
         '''
         Получает данные чата.
 
@@ -77,11 +77,17 @@ class ChatManager:
                     - chat_id (str): ID чата       
                     - is_system (bool): Системное ли сообщение            
                     - sender (str): Отправитель сообщения   
-                    - text (str): Текст сообщения    
-                
+                    - text (str): Текст сообщения       
+        Raises:
+            FpxGetChatDataError: Ошибка запроса данных чата
         '''
-        html = await self._account._client.get_current_chat(chat_id)
-        data = self._account._parser.parse_chat(html)
+        try:
+            stage = 'запроса данных FunPay'
+            html = await self._account._client.get_current_chat(chat_id)
+            stage = 'парсинга данных'
+            data = self._account._parser.parse_chat(html)
+        except Exception as e:
+            raise fpx_err.FpxGetChatDataError(f'При выполнении {stage} произошла ошибка: {e}')
         last_message_dict = data['last_message']
         last_msg = Message(sender=last_message_dict.get('sender'), text=last_message_dict.get('message'), is_system=last_message_dict.get('is_system'), chat_id=chat_id)
         chat = ChatData(node_name=data['data-name'], csrf_token=data['csrf-token'], user_id=data['user-id'], last_message=last_msg)

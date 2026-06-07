@@ -1,3 +1,5 @@
+import asyncio
+
 from fpx.utils import errors as fpx_err
 
 
@@ -23,7 +25,6 @@ class FunPayEditor:
         lot.fields['price'] = new_price
         response = await self._account._client.edit_lot(lot, active=True)
         if response.status_code == 200:
-            import asyncio
             await asyncio.sleep(0.5)
             new_lot = await self._account.lot._get_lot_editor_details(lot_id)
             if str(new_lot.fields.get('price')) == str(new_price):
@@ -57,7 +58,7 @@ class FunPayEditor:
         Returns:
             bool: True - лот включен
         Raises:
-            RequestError: Сервер не ответил
+            FpxRequestError: Сервер не ответил
         '''
         lot = await self._account.lot._get_lot_editor_details(lot_id)
         response = await self._account._client.edit_lot(lot, active=True)

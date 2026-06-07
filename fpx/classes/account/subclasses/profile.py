@@ -1,6 +1,8 @@
 from fpx.models.account import UserData, Order, Profile, CurReview
 from fpx.models.lots import LotInfo
 
+from fpx.utils import errors as fpx_err
+
 
 class ProfileManager:
 
@@ -14,14 +16,22 @@ class ProfileManager:
         Returns:
             UserData: Объект с данными юзера:   
                 - user_id (str): ID юзера.  
-                - csrf_token (str): Нужен для любого post запроса на funpay.    
+                - csrf_token (str): Нужен для любого post запроса на funpay.  
+        Raises:
+            FpxGetUserDataError: ошибка запроса данных юзера  
         '''
-        html = await self._account._client.get_main_menu()
-        data = self._account._parser.parse_main_menu(html)
-        self._account.data.username = data['username']
-        self._account.data.user_id = data['user-id']
-        self._account.data._csrf_token = data['csrf-token']
-        user_data = UserData(csrf_token=data['csrf-token'], user_id=data['user-id'])
+        try:
+            stage = 'запроса данных FunPay'
+            html = await self._account._client.get_main_menu()
+            stage = 'парсинга данных'
+            data = self._account._parser.parse_main_menu(html)
+            stage = 'типизации данных'
+            self._account.data.username = data['username']
+            self._account.data.user_id = data['user-id']
+            self._account.data._csrf_token = data['csrf-token']
+            user_data = UserData(csrf_token=data['csrf-token'], user_id=data['user-id'])
+        except Exception as e:
+            raise fpx_err.FpxGetUserDataError(f'При выполнении {stage} произошла ошибка: {e}')
         return user_data
 
     async def get_my_sells(self, limit:int=0):
@@ -40,12 +50,19 @@ class ProfileManager:
                 - topup_nickname (str): Данные, на которые отправлять пополнение. (ник, ссылка игрока и тд.)    
                 - status (str): Статус заказа.  
                 - name (str): Название заказа.  
-                - category (str): Категория заказа.     
+                - category (str): Категория заказа.   
+        Raises:
+            FpxGetUserSellsError: Ошибка запроса продаж  
         '''
-        html = await self._account._client.get_my_sells()
-        data = self._account._parser.parse_my_sells(html)
-        counter = 0
-        result = []
+        try:
+            stage = 'запроса данных FunPay'
+            html = await self._account._client.get_my_sells()
+            stage = 'парсинга данных'
+            data = self._account._parser.parse_my_sells(html)
+            counter = 0
+            result = []
+        except Exception as e:
+            raise fpx_err.FpxGetUserSellsError(f'При выполнении {stage} произошла ошибка: {e}')
         if limit > 0:
             counter += 1
         for i in data:
@@ -79,17 +96,25 @@ class ProfileManager:
                     - text (str): Текст отзыва. 
                     - stars (int): Кол-во звёзд в отзыве (1-5). 
                     - author (str): Автор отзыва.   
-                    - item_name (str): Название заказа, под которым оставлен отзыв. 
+                    - item_name (str): Название заказа, под которым оставлен отзыв.     
+        Raises:
+            FpxGetProfileError: Ошибка запроса профиля
         '''
         target_id = user_id or self._account.data.user_id
         if not target_id:
             target = await self.get_user_data()
             target_id = target.user_id
-        html = await self._account._client.get_user_profile(target_id)
-        data = self._account._parser.parse_profile(html)
-        lots_list = [LotInfo(name=lot['name'], id=lot['id']) for lot in data['lots']]
-        reviews = [CurReview(text=rev['text'], stars=rev['stars'], author=rev['author'], order_id=rev['order_id']) for rev in data['reviews']]
-        profile = Profile(category_ids=data['category-ids'], lots=lots_list, reviews=reviews)
+        try:
+            step = 'запроса данных FunPay'
+            html = await self._account._client.get_user_profile(target_id)
+            step = 'парсинга данных'
+            data = self._account._parser.parse_profile(html)
+            step = 'типизации данных'
+            lots_list = [LotInfo(name=lot['name'], id=lot['id']) for lot in data['lots']]
+            reviews = [CurReview(text=rev['text'], stars=rev['stars'], author=rev['author'], order_id=rev['order_id']) for rev in data['reviews']]
+            profile = Profile(category_ids=data['category-ids'], lots=lots_list, reviews=reviews)
+        except Exception as e:
+            raise fpx_err.FpxGetProfileError(f'При выполнении {step} произошла ошибка: {e}')
         return profile
 
     async def get_balance(self):
@@ -100,8 +125,15 @@ class ProfileManager:
             Balance: Объект с валютами:    
                 - rub (float): Баланс в рублях  
                 - usd (float): Баланс в долларах  
-                - eur (float): Баланс в евро
+                - eur (float): Баланс в евро    
+        Raises:
+            FpxGetProfileError: Ошибка сбора баланса
         '''
-        html = await self._account._client.get_finance_page()
-        balance = self._account._parser.parse_finanses(html)
+        try:
+            step = 'запрос данных FunPay'
+            html = await self._account._client.get_finance_page()
+            step = 'парсинг данных'
+            balance = self._account._parser.parse_finanses(html)
+        except Exception as e:
+            raise fpx_err.FpxGetProfileError(f'При сборе баланса, выполняя {step} произошла ошибка: {e}')
         return balance

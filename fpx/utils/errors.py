@@ -71,6 +71,50 @@ class FpxClientNotAttachedError(FpxAccountError):
     def __init__(self, message='Объект не привязан к клиенту fpx и не может выполнять действия'):
         super().__init__(message)
 
+class FpxGetGameIDError(FpxAccountError):
+    '''Ошибка запроса айди игры'''
+    def __init__(self, message='Ошибка запроса айди игры'):
+        super().__init__(message)
+
+class FpxGetLastCategoryLotError(FpxAccountError):
+    '''Ошибка запроса последнего лота в категории'''
+    def __init__(self, message='Ошибка запроса последнего лота в категории'):
+        super().__init__(message)
+
+class FpxGetChatDataError(FpxAccountError):
+    '''Ошибка запроса данных чата'''
+    def __init__(self, message='Ошибка запроса данных чата'):
+        super().__init__(message)
+
+class FpxGetLotEditorInfoError(FpxAccountError):
+    '''Ошибка запроса данных редактора лота'''
+    def __init__(self, message='Ошибка запроса данных редактора лота'):
+        super().__init__(message)
+
+class FpxGetLotInfoError(FpxAccountError):
+    '''Ошибка запроса данных лота'''
+    def __init__(self, message='Ошибка запроса данных лота'):
+        super().__init__(message)
+
+class FpxGetOrderInfoError(FpxAccountError):
+    '''Ошибка запроса данных заказа'''
+    def __init__(self, message='Ошибка запроса данных заказа'):
+        super().__init__(message)
+
+class FpxGetUserDataError(FpxAccountError):
+    '''Ошибка запроса данных юзера'''
+    def __init__(self, message='Ошибка запроса данных юзера'):
+        super().__init__(message)
+
+class FpxGetUserSellsError(FpxAccountError):
+    '''Ошибка запроса данных юзера'''
+    def __init__(self, message='Ошибка запроса данных юзера'):
+        super().__init__(message)
+
+class FpxGetProfileError(FpxAccountError):
+    '''Ошибка запроса данных юзера'''
+    def __init__(self, message='Ошибка запроса данных юзера'):
+        super().__init__(message)
 
 # --- Ошибки парсера ---
 class FpxNullDataError(FpxParseError):
