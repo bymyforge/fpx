@@ -147,10 +147,10 @@ class ChatRunner:
                     msg_obj = await self.runner._account.chat.get_chat_data(chat_cache_obj.chat_id)
                     message = msg_obj.last_message
                     chat_msg = Message(
-                        sender=message['sender'], 
+                        sender=message.sender, 
                         chat_id=chat_cache_obj.chat_id, 
                         text=chat_cache_obj.text, 
-                        is_system=message['is_system']
+                        is_system=message.is_system
                     )   
                     chat_msg._client = self.runner
                     await self._trigger_message_handlers(chat_msg)

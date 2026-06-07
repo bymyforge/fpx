@@ -16,5 +16,5 @@ class AddonsManager:
             str | int: ID игры.
         """
         html = await self.account.client.lot_menu_by_category(category_id)
-        data = self.account.parser.parse_lot_menu(html)
+        data = self.account._parser.parse_lot_menu(html)
         return data

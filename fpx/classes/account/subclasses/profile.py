@@ -17,7 +17,7 @@ class ProfileManager:
                 - csrf_token (str): Нужен для любого post запроса на funpay.    
         '''
         html = await self.account.client.get_main_menu()
-        data = self.account.parser.parse_main_menu(html)
+        data = self.account._parser.parse_main_menu(html)
         self.account.username = data['username']
         self.account.user_id = data['user-id']
         self.account._csrf_token = data['csrf-token']
@@ -31,17 +31,19 @@ class ProfileManager:
         Args:
             limit (int): Лимит заказов, которые нужно вернуть(если 0, то вернёт все заказы).
         Returns:
-            list: Список объектов, каждый содержит в себе:  
-                - order_id (str): ID заказа.    
-                - order_time (str): Время создания заказа.  
-                - client_name (str): Имя клиента.   
-                - price (float): Сумма заказа.  
+            list: Список объектов, каждый содержит в себе:      
+                - order_id (str): ID заказа.        
+                - order_time (str): Время создания заказа.      
+                - client_name (str): Имя клиента.       
+                - price (float): Сумма заказа.      
+                - amount (int): Кол-во штук заказа (1 по дефолту).      
+                - topup_nickname (str): Данные, на которые отправлять пополнение. (ник, ссылка игрока и тд.)    
                 - status (str): Статус заказа.  
                 - name (str): Название заказа.  
                 - category (str): Категория заказа.     
         '''
         html = await self.account.client.get_my_sells()
-        data = self.account.parser.parse_my_sells(html)
+        data = self.account._parser.parse_my_sells(html)
         counter = 0
         result = []
         if limit > 0:
@@ -57,7 +59,8 @@ class ProfileManager:
                 status=i['status'],
                 name=i['name'],
                 category=i['category'],
-                amount=i['amount']
+                amount=i['amount'],
+                topup_data=i.get('topup_data')
             )
             result.append(order)
             counter += 1
@@ -83,7 +86,7 @@ class ProfileManager:
             target = await self.get_user_data()
             target_id = target.user_id
         html = await self.account.client.get_user_profile(target_id)
-        data = self.account.parser.parse_profile(html)
+        data = self.account._parser.parse_profile(html)
         lots_list = [LotInfo(name=lot['name'], id=lot['id']) for lot in data['lots']]
         reviews = [CurReview(text=rev['text'], stars=rev['stars'], author=rev['author'], order_id=rev['order_id']) for rev in data['reviews']]
         profile = Profile(category_ids=data['category-ids'], lots=lots_list, reviews=reviews)
@@ -100,5 +103,5 @@ class ProfileManager:
                 - eur (float): Баланс в евро
         '''
         html = await self.account.client.get_finance_page()
-        balance = self.account.parser.parse_finanses(html)
+        balance = self.account._parser.parse_finanses(html)
         return balance

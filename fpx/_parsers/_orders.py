@@ -4,7 +4,7 @@ import logging
 from bs4 import BeautifulSoup
 
 from fpx.utils import errors as fpx_err
-from .base import BaseParser
+from ._base import BaseParser
 
 logger = logging.getLogger("fpx.order_parser")
 
@@ -12,6 +12,7 @@ logger = logging.getLogger("fpx.order_parser")
 class OrderParser(BaseParser):
     @classmethod
     def parse_order_page(cls, html_content):
+        ''' Парсит https://funpay.com/orders/.../ '''
         soup = BeautifulSoup(html_content, 'html.parser')
         result = {}
         result['review'] = {}
@@ -79,6 +80,7 @@ class OrderParser(BaseParser):
 
     @classmethod
     def parse_category_page(cls, html_content):
+        ''' Парсит https://funpay.com/lots/.../ '''
         soup = BeautifulSoup(html_content, 'html.parser')
         lowcoasters = {}
         buttons = soup.select('div.lot-field-radio-box button')

@@ -4,7 +4,7 @@ import logging
 from bs4 import BeautifulSoup
 
 from fpx.utils import errors as fpx_err
-from .base import BaseParser
+from ._base import BaseParser
 
 logger = logging.getLogger("fpx.profile_parser")
 
@@ -13,6 +13,7 @@ class LotParser(BaseParser):
 
     @classmethod
     def parse_lot_menu(cls, html_content: str):
+        '''Парсит страницу pay.com/lots/.../trade'''
         soup = BeautifulSoup(html_content, 'html.parser')
         button = soup.find('button', class_='js-lot-raise')
         if not button:
@@ -22,10 +23,11 @@ class LotParser(BaseParser):
             if data_game:
                 return data_game
             raise fpx_err.FpxParseError('Атрибут data-game не найден внутри кнопки поднятия')
-        raise fpx_err.FpxNullDataError('На странице лотов не найдена кнопка для поднятия. Возможно у вас нет созданных лотов')
+        raise fpx_err.FpxNullDataError('На странице лотов не найдена кнопка для поднятия. Возможно у вас нет созданных лотов в этой категории')
 
     @classmethod
     def parse_current_lot_menu(cls, html_content):
+        ''' https://funpay.com/lots/offer?id=... '''
         result = {}
         soup = BeautifulSoup(html_content, 'html.parser')
         param_items = soup.find_all('div', class_='param-item')
@@ -65,6 +67,7 @@ class LotParser(BaseParser):
     
     @classmethod
     def parse_edit_lot_page(cls, html_content):
+        ''' https://funpay.com/lots/offerEdit?node=...&offer=... '''
         soup = BeautifulSoup(html_content, 'html.parser')
         result = {}
         hidden_inputs = soup.find_all('input', type='hidden')

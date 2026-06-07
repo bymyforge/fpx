@@ -10,17 +10,18 @@ class OrderManager:
         Функция запрашивает детали заказа из /orders/{order_id}/.
 
         Args:
-            order_id (str | int): Айди заказа
+            order_id (str | int): ID заказа
         Returns:
             Order: Объект с данными:  
+                - order_id (str): ID заказа
                 - status (str): Статус заказа.  
                 - review (dict): Словарь с данными отзыва, который оставили к заказу.   
-                - description (str): Строка с подробным описанием заказа
-                - chat_id (str): ID чата
+                - description (str): Строка с подробным описанием заказа    
+                - chat_id (str): ID чата    
         '''
         html = await self.account.client.get_order_info(order_id)
-        data = self.account.parser.parse_order_page(html)
-        order = Order(status=data['status'], review=data['review'], description=data['desc'], chat_id=data['chat_id'])
+        data = self.account._parser.parse_order_page(html)
+        order = Order(order_id=order_id, status=data['status'], review=data['review'], description=data['desc'], chat_id=data['chat_id'])
         return order
 
     async def refund_order(self, order_id):

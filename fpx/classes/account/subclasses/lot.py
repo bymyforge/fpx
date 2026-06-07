@@ -24,7 +24,7 @@ class LotManager:
                 - fields (dict): Словарь с филдами, нет фиксированного кол-ва филдов, просто отправляйте все.  
         '''
         html = await self.account.client.get_lot_editor_data(lot_id)
-        data = self.account.parser.parse_edit_lot_page(html)
+        data = self.account._parser.parse_edit_lot_page(html)
         base_fields = ['csrf_token', 'form_created_at', 'offer_id', 'node_id', 'location', 'deleted']
         main_data = {k: v for k, v in data.items() if k in base_fields}
         other_fields = {k: v for k, v in data.items() if k not in base_fields}
@@ -44,7 +44,7 @@ class LotManager:
                 - price (float): Цена лота.  
         '''
         html = await self.account.client.get_lot_info(lot_id)
-        data = self.account.parser.parse_current_lot_menu(html)
+        data = self.account._parser.parse_current_lot_menu(html)
         lot = CurrentLotInfo(
             short_desc=data['short_desc'],
             description=data['description'],

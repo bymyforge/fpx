@@ -65,6 +65,7 @@ class Order:
     client_name: Optional[str] = None
     price: Optional[float] = None
     amount: Optional[int] = None
+    topup_data: Optional[str] = None
     finded_mapping: Optional[str] = None
     status: Optional[str] = None
     name: Optional[str] = None

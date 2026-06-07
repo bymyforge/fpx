@@ -5,7 +5,8 @@ import re
 from bs4 import BeautifulSoup
 
 from fpx.utils import errors as fpx_err
-from .base import BaseParser
+from fpx.models.account import Balance
+from ._base import BaseParser
 
 logger = logging.getLogger("fpx.profile_parser")
 
@@ -13,6 +14,7 @@ logger = logging.getLogger("fpx.profile_parser")
 class ProfileParser(BaseParser):
     @classmethod
     def parse_finanses(cls, html_content: str):
+        ''' Парсит https://funpay.com/account/balance '''
         soup = BeautifulSoup(html_content, 'html.parser')
         balances_container = soup.find('span', class_='balances-list')
         if not balances_container:
@@ -38,6 +40,7 @@ class ProfileParser(BaseParser):
 
     @classmethod
     def parse_profile(cls, html_content: str):
+        ''' Парсит https://funpay.com/users/.../ '''
         soup = BeautifulSoup(html_content, 'html.parser')
         offer_list = soup.find_all('div', class_='offer') or soup.find_all('div', attrs={'data-id': True})
         review_list = soup.find_all('div', class_='review-compiled-review') or soup.find_all('div', class_='review-item')
@@ -106,6 +109,7 @@ class ProfileParser(BaseParser):
 
     @classmethod
     def parse_my_sells(cls, html_content):
+        ''' Парсит https://funpay.com/orders/trade '''
         result = []
         soup = BeautifulSoup(html_content, 'html.parser')
         tc_items = soup.find_all('a', class_='tc-item')
@@ -139,18 +143,23 @@ class ProfileParser(BaseParser):
                     raw_name = divs[0].get_text(strip=True) if len(divs) > 0 else "Unknown"
                     pre_result['name'] = raw_name
                     pre_result['category'] = divs[1].get_text(strip=True) if len(divs) > 1 else "Unknown"
-                    amount_match = re.search(r'(\d+)\s*(?:шт\.?|pcs\.?)', raw_name, re.IGNORECASE)
-                    if amount_match:
+                    match = re.search(r'(\d+)\s*(?:шт\.?|pcs\.?)\s*,\s*(.+)$', raw_name, re.IGNORECASE)
+                    if match:
                         try:
-                            pre_result['amount'] = int(amount_match.group(1))
+                            pre_result['amount'] = int(match.group(1))
                         except ValueError:
                             pre_result['amount'] = 1
+                        extracted_data = match.group(2).strip()
+                        pre_result['topup_data'] = extracted_data if extracted_data else None
                     else:
-                        pre_result['amount'] = 1
+                        pre_result['topup_data'] = None
+                        amount_match = re.search(r'(\d+)\s*(?:шт\.?|pcs\.?)', raw_name, re.IGNORECASE)
+                        pre_result['amount'] = int(amount_match.group(1)) if amount_match else 1
                 else:
                     pre_result['name'] = "Unknown"
                     pre_result['category'] = "Unknown"
                     pre_result['amount'] = 1
+                    pre_result['topup_data'] = None
                 result.append(pre_result)
             except Exception as e:
                 logger.debug(f'При парсинге конкретного объекта произошла ошибка: {e}')
@@ -161,6 +170,7 @@ class ProfileParser(BaseParser):
 
     @classmethod
     def parse_main_menu(cls, html_content: str):
+        ''' Парсит funpay.com '''
         soup = BeautifulSoup(html_content, 'html.parser')
         user_link = soup.find('a', class_='user-link-dropdown')
         if not user_link:

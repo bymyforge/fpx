@@ -1,4 +1,4 @@
-from fpx.models.chat import ChatData
+from fpx.models.chat import ChatData, Message
 from fpx.utils import errors as fpx_err
 
 class ChatManager:
@@ -26,7 +26,7 @@ class ChatManager:
         try:
             html = await self.account.client.get_chats_page()
             step = 'парсинг данных чатов'
-            chats = self.account.parser.parse_chats_list(html)
+            chats = self.account._parser.parse_chats_list(html)
         except Exception as e:
             raise fpx_err.FpxGetChatsError(f'Не удалось выполнить {step}. Ошибка: {e}')
         return chats
@@ -73,15 +73,18 @@ class ChatManager:
                 - node_name (str): Полный ID переписки, нужный для отправки сообщения (users-8778502-19903068)  
                 - csrf_token (str): Нужен для post запросов, сохраняется в кеш self.account._csrf_token  
                 - user_id (str): твой ID     
-                - last_message (list): Словарь, содержащий последнее сообщение в чате:       
-                    - is_system (bool): Системное ли сообщение      
+                - Message: Объект, содержащий последнее сообщение в чате:           
+                    - chat_id (str): ID чата       
+                    - is_system (bool): Системное ли сообщение            
                     - sender (str): Отправитель сообщения   
-                    - message (str): Текст сообщения    
+                    - text (str): Текст сообщения    
                 
         '''
         html = await self.account.client.get_current_chat(chat_id)
-        data = self.account.parser.parse_chat(html)
-        chat = ChatData(node_name=data['data-name'], csrf_token=data['csrf-token'], user_id=data['user-id'], last_message=data['last_message'])
+        data = self.account._parser.parse_chat(html)
+        last_message_dict = data['last_message']
+        last_msg = Message(sender=last_message_dict.get('sender'), text=last_message_dict.get('message'), is_system=last_message_dict.get('is_system'), chat_id=chat_id)
+        chat = ChatData(node_name=data['data-name'], csrf_token=data['csrf-token'], user_id=data['user-id'], last_message=last_msg)
         self.account._node_names[chat_id] = chat.node_name
         self.account._csrf_token = chat.csrf_token
         self.account.user_id = chat.user_id
