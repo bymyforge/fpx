@@ -6,7 +6,7 @@ from fpx.utils import errors as fpx_err
 
 class ReviewManager:
     def __init__(self, account):
-        self.account = account
+        self._account = account
 
     async def get_review(self, order_id):
         '''
@@ -20,7 +20,7 @@ class ReviewManager:
                 - stars (int): Количество звёзд в отзыве.   
                 - answer (str): Ваш ответ на отзыв, может быть пустой строкой.  
         '''
-        r = await self.account.order.get_order_details(order_id)
+        r = await self._account.order.get_order_details(order_id)
         rev = r.review
         review = Review(text=rev.get('text'), stars=rev.get('stars'), answer=rev.get('answer'))
         return review
@@ -37,9 +37,9 @@ class ReviewManager:
         Raises:
             FpxAnswerReviewError: При ошибке (ответ не совпадает заданному/сервер не вернул ничего).
         '''
-        if self.account.user_id is None:
-            await self.account.profile.get_user_data()
-        r = await self.account.client.answer_review(self.account.user_id, text, order_id)
+        if self._account.data.user_id is None:
+            await self._account.profile.get_user_data()
+        r = await self._account._client.answer_review(self._account.data.user_id, text, order_id)
         try:
             response = r.json()
         except json.JSONDecodeError:

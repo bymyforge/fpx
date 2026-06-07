@@ -74,7 +74,7 @@ class CategoryRunner:
         lots = await self._compare_lot_category_cache()
         if lots:
             for lot in lots:
-                if lot.owner_username == self.runner._account.username:
+                if lot.owner_username == self.runner._account.data.username:
                     continue
                 for handler in self.runner.handler._handlers['lot_category']:
                     asyncio.create_task(handler(lot))
@@ -84,7 +84,7 @@ class CategoryRunner:
         lots = await self._compare_chip_category_cache()
         if lots:
             for lot in lots:
-                if lot.owner_username == self.runner._account.username:
+                if lot.owner_username == self.runner._account.data.username:
                     continue
                 for handler in self.runner.handler._handlers['chip_category']:
                     asyncio.create_task(handler(lot))

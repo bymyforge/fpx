@@ -84,7 +84,7 @@ class ChatRunner:
         return False
 
     async def _trigger_message_handlers(self, message):
-        if self.runner._account.username == message.sender:
+        if self.runner._account.data.username == message.sender:
             return
         msg_text = message.text.lower()
         current_state = await self.runner.storage.get_state(message.chat_id)

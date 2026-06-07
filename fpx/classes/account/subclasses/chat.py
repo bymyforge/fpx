@@ -3,7 +3,7 @@ from fpx.utils import errors as fpx_err
 
 class ChatManager:
     def __init__(self, account):
-        self.account = account
+        self._account = account
 
     async def get_chats(self):
         """
@@ -24,9 +24,9 @@ class ChatManager:
         """
         step = 'запрос страницы чатов с FunPay'
         try:
-            html = await self.account.client.get_chats_page()
+            html = await self._account._client.get_chats_page()
             step = 'парсинг данных чатов'
-            chats = self.account._parser.parse_chats_list(html)
+            chats = self._account._parser.parse_chats_list(html)
         except Exception as e:
             raise fpx_err.FpxGetChatsError(f'Не удалось выполнить {step}. Ошибка: {e}')
         return chats
@@ -48,10 +48,10 @@ class ChatManager:
         """
         step = f'запрос данных чата ID {chat_id}'
         try:
-            if chat_id not in self.account._node_names or not self.account._csrf_token:
+            if chat_id not in self._account.data._node_names or not self._account.data._csrf_token:
                 await self.get_chat_data(chat_id)
             step = f'POST запрос на отправку сообщения {text} в чат ID {chat_id}'
-            response = await self.account.client.send_message_request(self.account._node_names[chat_id], -1, text)
+            response = await self._account._client.send_message_request(self._account.data._node_names[chat_id], -1, text)
             inner_response = response.get('response', {})
         except Exception as e:
             raise fpx_err.FpxMessageDeliverError(f'Не удалось выполнить {step}. Ошибка: {e}')
@@ -80,12 +80,12 @@ class ChatManager:
                     - text (str): Текст сообщения    
                 
         '''
-        html = await self.account.client.get_current_chat(chat_id)
-        data = self.account._parser.parse_chat(html)
+        html = await self._account._client.get_current_chat(chat_id)
+        data = self._account._parser.parse_chat(html)
         last_message_dict = data['last_message']
         last_msg = Message(sender=last_message_dict.get('sender'), text=last_message_dict.get('message'), is_system=last_message_dict.get('is_system'), chat_id=chat_id)
         chat = ChatData(node_name=data['data-name'], csrf_token=data['csrf-token'], user_id=data['user-id'], last_message=last_msg)
-        self.account._node_names[chat_id] = chat.node_name
-        self.account._csrf_token = chat.csrf_token
-        self.account.user_id = chat.user_id
+        self._account.data._node_names[chat_id] = chat.node_name
+        self._account.data._csrf_token = chat.csrf_token
+        self._account.data.user_id = chat.user_id
         return chat

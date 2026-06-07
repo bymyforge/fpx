@@ -4,10 +4,10 @@ from types import SimpleNamespace
 
 from fpx.utils import errors as fpx_err
 
-from fpx.classes.runner.subclasses.chat import ChatRunner
-from fpx.classes.runner.subclasses.order import OrderRunner
-from fpx.classes.runner.subclasses.review import ReviewRunner
-from fpx.classes.runner.subclasses.category import CategoryRunner
+from fpx.classes.runner.subclasses._chat import ChatRunner
+from fpx.classes.runner.subclasses._order import OrderRunner
+from fpx.classes.runner.subclasses._review import ReviewRunner
+from fpx.classes.runner.subclasses._category import CategoryRunner
 from fpx.classes.runner.subclasses.router import Router
 from fpx.classes.runner.subclasses.handler import Handlers
 

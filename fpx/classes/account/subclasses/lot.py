@@ -4,7 +4,7 @@ from fpx.utils import errors as fpx_err
 
 class LotManager:
     def __init__(self, account):
-        self.account = account
+        self._account = account
 
     async def _get_lot_editor_details(self, lot_id):
         '''
@@ -23,8 +23,8 @@ class LotManager:
                 - deleted (str): Обычно пустой.  
                 - fields (dict): Словарь с филдами, нет фиксированного кол-ва филдов, просто отправляйте все.  
         '''
-        html = await self.account.client.get_lot_editor_data(lot_id)
-        data = self.account._parser.parse_edit_lot_page(html)
+        html = await self._account._client.get_lot_editor_data(lot_id)
+        data = self._account._parser.parse_edit_lot_page(html)
         base_fields = ['csrf_token', 'form_created_at', 'offer_id', 'node_id', 'location', 'deleted']
         main_data = {k: v for k, v in data.items() if k in base_fields}
         other_fields = {k: v for k, v in data.items() if k not in base_fields}
@@ -43,8 +43,8 @@ class LotManager:
                 - description (str): Полное описание.  
                 - price (float): Цена лота.  
         '''
-        html = await self.account.client.get_lot_info(lot_id)
-        data = self.account._parser.parse_current_lot_menu(html)
+        html = await self._account._client.get_lot_info(lot_id)
+        data = self._account._parser.parse_current_lot_menu(html)
         lot = CurrentLotInfo(
             short_desc=data['short_desc'],
             description=data['description'],
@@ -62,17 +62,17 @@ class LotManager:
             NullData: Ни один лот не найден.
             RaisingLotError: Лот не поднят. 
         '''
-        if not self.account._csrf_token:
-            await self.account.profile.get_user_data()
+        if not self._account.data._csrf_token:
+            await self._account.profile.get_user_data()
         try:
-            profile = await self.account.profile.profile()
+            profile = await self._account.profile.profile()
             category_list = profile.category_ids
             if not category_list:
                 raise fpx_err.FpxRaisingLotError('Нам нечего поднимать!')
             response = []
             for node_id in category_list:
-                game_id = await self.account.addons.get_game_id(node_id)
-                response.append(await self.account.client.raise_lot(node_id, game_id))
+                game_id = await self._account.addons.get_game_id(node_id)
+                response.append(await self._account._client.raise_lot(node_id, game_id))
             return response
         except Exception as e:
             raise RaisingLotError(message=e)

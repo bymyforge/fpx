@@ -5,7 +5,7 @@ from fpx.models.lots import LotInfo
 class ProfileManager:
 
     def __init__(self, account):
-        self.account = account
+        self._account = account
 
     async def get_user_data(self):
         '''
@@ -16,11 +16,11 @@ class ProfileManager:
                 - user_id (str): ID юзера.  
                 - csrf_token (str): Нужен для любого post запроса на funpay.    
         '''
-        html = await self.account.client.get_main_menu()
-        data = self.account._parser.parse_main_menu(html)
-        self.account.username = data['username']
-        self.account.user_id = data['user-id']
-        self.account._csrf_token = data['csrf-token']
+        html = await self._account._client.get_main_menu()
+        data = self._account._parser.parse_main_menu(html)
+        self._account.data.username = data['username']
+        self._account.data.user_id = data['user-id']
+        self._account.data._csrf_token = data['csrf-token']
         user_data = UserData(csrf_token=data['csrf-token'], user_id=data['user-id'])
         return user_data
 
@@ -42,8 +42,8 @@ class ProfileManager:
                 - name (str): Название заказа.  
                 - category (str): Категория заказа.     
         '''
-        html = await self.account.client.get_my_sells()
-        data = self.account._parser.parse_my_sells(html)
+        html = await self._account._client.get_my_sells()
+        data = self._account._parser.parse_my_sells(html)
         counter = 0
         result = []
         if limit > 0:
@@ -81,12 +81,12 @@ class ProfileManager:
                     - author (str): Автор отзыва.   
                     - item_name (str): Название заказа, под которым оставлен отзыв. 
         '''
-        target_id = user_id or self.account.user_id
+        target_id = user_id or self._account.data.user_id
         if not target_id:
             target = await self.get_user_data()
             target_id = target.user_id
-        html = await self.account.client.get_user_profile(target_id)
-        data = self.account._parser.parse_profile(html)
+        html = await self._account._client.get_user_profile(target_id)
+        data = self._account._parser.parse_profile(html)
         lots_list = [LotInfo(name=lot['name'], id=lot['id']) for lot in data['lots']]
         reviews = [CurReview(text=rev['text'], stars=rev['stars'], author=rev['author'], order_id=rev['order_id']) for rev in data['reviews']]
         profile = Profile(category_ids=data['category-ids'], lots=lots_list, reviews=reviews)
@@ -102,6 +102,6 @@ class ProfileManager:
                 - usd (float): Баланс в долларах  
                 - eur (float): Баланс в евро
         '''
-        html = await self.account.client.get_finance_page()
-        balance = self.account._parser.parse_finanses(html)
+        html = await self._account._client.get_finance_page()
+        balance = self._account._parser.parse_finanses(html)
         return balance

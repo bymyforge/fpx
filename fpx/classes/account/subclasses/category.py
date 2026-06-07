@@ -21,7 +21,7 @@ class CategoryManager:
                 - offer_id (str): ID лота       
                 - owner_username (str): Юзернейм владельца лота         
         '''
-        html = await self._account.client.get_lot_category(lot_category_id)
+        html = await self._account._client.get_lot_category(lot_category_id)
         data = self._account._parser.parse_category_page(html)
         result = []
         for e in data:
@@ -43,7 +43,7 @@ class CategoryManager:
                 - offer_id (str): ID лота   
                 - owner_username (str): Юзернейм владельца лота   
         '''
-        html = await self._account.client.get_chip_category(chip_category_id)
+        html = await self._account._client.get_chip_category(chip_category_id)
         data = self._account._parser.parse_category_page(html)
         result = []
         for e in data:

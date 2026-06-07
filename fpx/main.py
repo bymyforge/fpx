@@ -6,22 +6,22 @@ from fpx.fsm import MemoryStorage, BaseStorage
 
 class FunPayTools:
     def __init__(self, gkey, storage: BaseStorage | None = None):
-        self.cookies = {
+        self._cookies = {
             'golden_key': gkey,
             'locale': 'ru'
         }
-        self.headers = {
+        self._headers = {
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0",
             "Accept-Language": "ru-RU,ru;q=0.9"
         }
-        self.client = httpx.AsyncClient(
+        self._client = httpx.AsyncClient(
             http2=True,
-            cookies=self.cookies,
-            headers=self.headers,
+            cookies=self._cookies,
+            headers=self._headers,
             base_url='https://funpay.com',
             follow_redirects=True
         )
-        self.account = Account(self.client)
+        self.account = Account(self._client)
         self.runner = Runner(self.account)
         self.handler = self.runner.handler
         self.account._request_engine.runner = self.runner

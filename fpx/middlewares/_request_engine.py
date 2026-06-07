@@ -17,12 +17,12 @@ class RequestEngine:
                 kwargs['data'] = {}
             if 'headers' not in kwargs:
                 kwargs['headers'] = {}
-            if self._account._csrf_token is None:
+            if self._account.data._csrf_token is None:
                 await self._account.profile.get_user_data()
             if 'csrf_token' not in kwargs['data']:
-                kwargs['data']['csrf_token'] = self._account._csrf_token
+                kwargs['data']['csrf_token'] = self._account.data._csrf_token
             if 'X-Cp-Csrf-Token' not in kwargs['headers']:
-                kwargs['headers']['X-Cp-Csrf-Token'] = self._account._csrf_token
+                kwargs['headers']['X-Cp-Csrf-Token'] = self._account.data._csrf_token
         for attemt in range(attemts):
             try:
                 response = await self._client.request(method, url, **kwargs)

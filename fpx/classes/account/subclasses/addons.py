@@ -3,7 +3,7 @@
 
 class AddonsManager:
     def __init__(self, account):
-        self.account = account
+        self._account = account
 
     async def get_game_id(self, category_id: str):
         """
@@ -15,6 +15,6 @@ class AddonsManager:
         Returns:    
             str | int: ID игры.
         """
-        html = await self.account.client.lot_menu_by_category(category_id)
-        data = self.account._parser.parse_lot_menu(html)
+        html = await self._account._client.lot_menu_by_category(category_id)
+        data = self._account._parser.parse_lot_menu(html)
         return data

@@ -3,7 +3,7 @@ from fpx.utils import errors as fpx_err
 
 class FunPayEditor:
     def __init__(self, account):
-        self.account = account
+        self._account = account
 
     async def change_lot_price(self, lot_id, new_price: str):
         '''
@@ -18,14 +18,14 @@ class FunPayEditor:
             FpxLotEditingError: Цена не изменилась 
             FpxRequestError: Плохое соединение с интернетом/сервер не ответил
         '''
-        await self.account.profile.get_user_data()
-        lot = await self.account.lot._get_lot_editor_details(lot_id)
+        await self._account.profile.get_user_data()
+        lot = await self._account.lot._get_lot_editor_details(lot_id)
         lot.fields['price'] = new_price
-        response = await self.account.client.edit_lot(lot, active=True)
+        response = await self._account._client.edit_lot(lot, active=True)
         if response.status_code == 200:
             import asyncio
             await asyncio.sleep(0.5)
-            new_lot = await self.account.lot._get_lot_editor_details(lot_id)
+            new_lot = await self._account.lot._get_lot_editor_details(lot_id)
             if str(new_lot.fields.get('price')) == str(new_price):
                 return True
             raise fpx_err.FpxLotEditingError(f"Цена на сайте осталась старой: {new_lot.fields.get('price')}")
@@ -42,8 +42,8 @@ class FunPayEditor:
         Raises:
             FpxRequestError: Сервер не ответил
         '''
-        lot = await self.account.lot._get_lot_editor_details(lot_id)
-        response = await self.account.client.edit_lot(lot)
+        lot = await self._account.lot._get_lot_editor_details(lot_id)
+        response = await self._account._client.edit_lot(lot)
         if response.status_code == 200:
             return True
         raise fpx_err.FpxRequestError('Ошибка отправки запроса на изменение деталей лота')
@@ -59,8 +59,8 @@ class FunPayEditor:
         Raises:
             RequestError: Сервер не ответил
         '''
-        lot = await self.account.lot._get_lot_editor_details(lot_id)
-        response = await self.account.client.edit_lot(lot, active=True)
+        lot = await self._account.lot._get_lot_editor_details(lot_id)
+        response = await self._account._client.edit_lot(lot, active=True)
         if response.status_code == 200:
             return True
         raise fpx_err.FpxRequestError('Ошибка отправки запроса на изменение деталей лота')
