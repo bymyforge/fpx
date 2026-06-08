@@ -76,7 +76,7 @@ class CategoryRunner:
             for lot in lots:
                 if lot.owner_username == self.runner._account.data.username:
                     continue
-                for handler in self.runner.handler._handlers['lot_category']:
+                for handler in self.runner.router._handlers['lot_category']:
                     asyncio.create_task(handler(lot))
 
     async def _check_chip_categories(self, chip_category_ids):
@@ -86,5 +86,5 @@ class CategoryRunner:
             for lot in lots:
                 if lot.owner_username == self.runner._account.data.username:
                     continue
-                for handler in self.runner.handler._handlers['chip_category']:
+                for handler in self.runner.router._handlers['chip_category']:
                     asyncio.create_task(handler(lot))

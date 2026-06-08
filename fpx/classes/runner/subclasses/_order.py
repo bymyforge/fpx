@@ -94,17 +94,17 @@ class OrderRunner:
     async def _trigger_order_handlers(self, order: Order):
         state_ctx = FSMContext(self.runner.storage, order.chat_id)
         status = order.status.lower()
-        for handler in self.runner.handler._handlers['order']:
+        for handler in self.runner.router._handlers['order']:
             await self._check_handler(handler, order, state_ctx)
         if status in ('закрыт', 'closed', 'закрито'):
-            for handler in self.runner.handler._handlers['confirmed_order']:
+            for handler in self.runner.router._handlers['confirmed_order']:
                 await self._check_handler(handler, order, state_ctx)
         elif status in ('оплачен', 'оплачено', 'paid', 'відкрито'):
-            for handler in self.runner.handler._handlers['new_order']:
+            for handler in self.runner.router._handlers['new_order']:
                 await self._check_handler(handler, order, state_ctx)
             await self._check_trigger_for_command(order, state_ctx)
         elif status in ('возврат', 'повернення', 'refund'):
-            for handler in self.runner.handler._handlers['refund']:
+            for handler in self.runner.router._handlers['refund']:
                 await self._check_handler(handler, order, state_ctx)
 
     async def _process_single_order(self, order: Order):

@@ -20,6 +20,12 @@ class Router:
             'startup': [],
             'flood': []
         }
+        
+    def include_router(self, router: Router):
+        '''Метод для подключения плагинов и сторонних роутеров'''
+        for event_type, funcs in router._handlers.items():
+            if event_type in self._handlers:
+                self._handlers[event_type].extend(funcs)
 
     def order_targets(self, target_dict: dict):
         '''

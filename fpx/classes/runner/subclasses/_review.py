@@ -29,7 +29,7 @@ class ReviewRunner:
             order = await self.runner._account.order.get_order_details(review.order_id)
             review._client = self.runner
             review.order = order
-            for handler in self.runner.handler._handlers['review']:
+            for handler in self.runner.router._handlers['review']:
                 if handler['stars'] is None:
                     asyncio.create_task(handler['function'](review))
                 else:

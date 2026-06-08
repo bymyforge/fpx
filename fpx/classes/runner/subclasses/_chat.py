@@ -50,7 +50,7 @@ class ChatRunner:
             return False
         first_word = parts[0].lower()
         args = parts[1:]
-        for cmd_handler in self.runner.handler._handlers['commands']:
+        for cmd_handler in self.runner.router._handlers['commands']:
             target_command = cmd_handler['command']
             target_command_lower = {k.lower(): v for k, v in target_command.items()}
             if first_word in target_command_lower:
@@ -95,12 +95,12 @@ class ChatRunner:
             if await self._process_message(message, state_ctx):
                 return
         except Exception as e:
-            if self.runner.handler._handlers['error']:
-                await self.runner.handler._handlers['error'](message, e)
+            if self.runner.router._handlers['error']:
+                await self.runner.router._handlers['error'](message, e)
             else:
                 logger.debug(f'Ошибка при обработке сообщения: {e}', exc_info=True)
             return
-        for handler in self.runner.handler._handlers['message']:
+        for handler in self.runner.router._handlers['message']:
             if handler['state'] != current_state:
                 continue
             async def call_handler(h_func):

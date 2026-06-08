@@ -9,7 +9,6 @@ from fpx.classes.runner.subclasses._order import OrderRunner
 from fpx.classes.runner.subclasses._review import ReviewRunner
 from fpx.classes.runner.subclasses._category import CategoryRunner
 from fpx.classes.runner.subclasses.router import Router
-from fpx.classes.runner.subclasses.handler import Handlers
 
 class Runner:
     def __init__(self, account):
@@ -18,7 +17,7 @@ class Runner:
         self._order = OrderRunner(self)
         self._review = ReviewRunner(self)
         self._category = CategoryRunner(self)
-        self.handler = Handlers(self)
+        self.router = Router()
         self.storage = None
         self._cache = {
             'msgs': [],
@@ -86,7 +85,7 @@ class Runner:
         ])
         await asyncio.gather(*tasks, return_exceptions=True)
         self._cache_is_updated = True
-        for handler in self.handler._handlers['startup']:
+        for handler in self.router._handlers['startup']:
             asyncio.create_task(handler())
 
     async def _cache_runner(self, watch_lots, watch_chips):
