@@ -1,9 +1,11 @@
 import inspect
 import asyncio
+import logging
 
 from fpx.models.account import Order
 from fpx.fsm import FSMContext
 
+logger = logging.getLogger("fpx.order_runner")
 
 class OrderRunner:
     def __init__(self, runner):
@@ -112,8 +114,8 @@ class OrderRunner:
             order.chat_id = order_info.chat_id
             order._client = self.runner
             await self._trigger_order_handlers(order)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f'В процессе обработки заказа произошла ошибка: {e}. Убедитесь что всё хорошо')
 
     async def _check_orders(self):
         await self.runner._order._update_order_cache()

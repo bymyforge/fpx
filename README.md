@@ -6,7 +6,7 @@
 <h1 align="center">fpx</h1>
 
 <p align="center">
-  <strong>fpx</strong> - асинхронный Python-фреймворк и библиотека для упрощения взаимодействия с <a href="https://funpay.com">funpay.com</a>.
+  <strong>fpx</strong> - асинхронный Python-фреймворк и библиотека для упрощения взаимодействия с <a href="https://funpay.com">funpay.com</a>. Моя философия это максимальная простота взаимодействия с кодом, я хочу чтобы разработчик вообще не напрягался насчёт фп когда использовал мой код
 </p>
 
 <p align="center">

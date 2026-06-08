@@ -29,3 +29,11 @@ class FunPayTools:
         self.account._request_engine.runner = self.runner
         self.storage = storage or MemoryStorage()
         self.runner.storage = self.storage
+    async def _close(self):
+        await self._client.aclose()
+
+    async def __aenter__(self): 
+        return self
+        
+    async def __aexit__(self, *exc): 
+        await self._close()

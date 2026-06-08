@@ -1,9 +1,9 @@
 import asyncio
-
+import logging
 
 from fpx.models.account import CurReview, Order
 
-
+logger = logging.getLogger("fpx.review_runner")
 
 class ReviewRunner:
     def __init__(self, runner):
@@ -35,8 +35,8 @@ class ReviewRunner:
                 else:
                     if review.stars == handler['stars']:
                         await handler['function'](review)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f'В процессе обработки отзыва произошла ошибка: {e}. Убедитесь что всё хорошо')
 
     async def _check_reviews(self):
         await self.runner._review._update_review_cache()

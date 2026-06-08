@@ -10,7 +10,7 @@ class RequestEngine:
         self.runner = None
 
     async def execute(self, method: str, url: str, **kwargs):
-        attemts = 3
+        attempts = 3
         backoff = 1.5 # множитель времени ожидания
         if method.upper() in ('POST', 'PUT', 'DELETE'):
             if 'data' not in kwargs:
@@ -23,7 +23,7 @@ class RequestEngine:
                 kwargs['data']['csrf_token'] = self._account.data._csrf_token
             if 'X-Cp-Csrf-Token' not in kwargs['headers']:
                 kwargs['headers']['X-Cp-Csrf-Token'] = self._account.data._csrf_token
-        for attemt in range(attemts):
+        for attempt in range(attempts):
             try:
                 response = await self._client.request(method, url, **kwargs)
                 # флуд контрль
@@ -36,17 +36,17 @@ class RequestEngine:
                     return await self.execute(method, url, **kwargs)
                 # если чето сервер не ответил
                 if response.status_code in (502, 503, 504):
-                    sleep_time = backoff ** attemt
+                    sleep_time = backoff ** attempt
                     await asyncio.sleep(sleep_time)
                     continue
                 return response
             except httpx.ReadTimeout as e:
                 if method.upper() == 'GET':
-                    if attemt == attemts - 1: raise e
-                    await asyncio.sleep(backoff ** attemt)
+                    if attempt == attempts - 1: raise e
+                    await asyncio.sleep(backoff ** attempt)
                 else:
                     raise fpx_err.FpxRequestError(message=f'POST запрос упал по таймауту ответа. Возможно действие выполнилось: {e}')
             except (httpx.ConnectTimeout, httpx.ConnectError) as e:
-                if attemt == attemts - 1: raise e
-                await asyncio.sleep(backoff ** attemt)
+                if attempt == attempts - 1: raise e
+                await asyncio.sleep(backoff ** attempt)
         raise fpx_err.FpxRequestError(message=f"Превышено количество попыток запроса к {url}")

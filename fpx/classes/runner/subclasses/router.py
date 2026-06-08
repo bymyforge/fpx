@@ -21,7 +21,7 @@ class Router:
             'flood': []
         }
 
-    def registrate_order_targets(self, target_dict: dict):
+    def order_targets(self, target_dict: dict):
         '''
         Метод для регистрации команд автоматизации новых заказов.
         
@@ -32,7 +32,7 @@ class Router:
             'trigger_command': target_dict
         })
 
-    def registrate_message_command(self, command_dict: dict):
+    def message_commands(self, command_dict: dict):
         '''
         Метод для регистрации команд автоматизации сообщений.
 
@@ -46,7 +46,7 @@ class Router:
     def on_error(self):
         '''Декоратор для отлова ошибок'''
         def decorator(func):
-            self._handlers['error'] = func
+            self._handlers['error'].append(func)
             return func
         return decorator
         

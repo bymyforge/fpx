@@ -44,6 +44,7 @@ nav:
   - Продвинутый уровень:
       - Машина состояний (FSM): fsm.md
   - Примеры скриптов: examples.md
+  - Список методов: api.md
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -51,3 +52,13 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_root_heading: true
+            heading_level: 2

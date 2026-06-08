@@ -84,6 +84,8 @@ class ChatRunner:
         return False
 
     async def _trigger_message_handlers(self, message):
+        if self.runner._account.data.username is None:
+            await self.runner._account.profile.get_user_data()
         if self.runner._account.data.username == message.sender:
             return
         msg_text = message.text.lower()
@@ -155,6 +157,6 @@ class ChatRunner:
                     chat_msg._client = self.runner
                     await self._trigger_message_handlers(chat_msg)
                 except Exception as e:
-                    logger.error(f"Ошибка при параллельной обработке чата {chat_cache_obj.chat_id}: {e}", exc_info=True)
+                    logger.debug(f"Ошибка при параллельной обработке чата {chat_cache_obj.chat_id}: {e}", exc_info=True)
             tasks = [process_single_chat(chat) for chat in chats]
             await asyncio.gather(*tasks)

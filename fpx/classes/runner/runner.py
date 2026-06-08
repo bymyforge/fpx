@@ -84,7 +84,7 @@ class Runner:
             self._order._update_order_cache(),
             self._review._update_review_cache()
         ])
-        await asyncio.gather(*tasks)
+        await asyncio.gather(*tasks, return_exceptions=True)
         self._cache_is_updated = True
         for handler in self.handler._handlers['startup']:
             asyncio.create_task(handler())
