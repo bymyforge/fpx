@@ -67,7 +67,7 @@ class OrderRunner:
     async def _check_trigger_for_command(self, order: Order, state_ctx: FSMContext):
         if order.description is None:
             return False
-        for cmd_handler in self.runner.handler._handlers['order_command']:
+        for cmd_handler in self.runner.router._handlers['order_command']:
             target_command = cmd_handler['trigger_command']
             target_command_lower = {k.lower(): v for k, v in target_command.items()}
             target_function = None

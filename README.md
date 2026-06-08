@@ -55,7 +55,7 @@ async def main():
     # инициализируем аккаунт
     fp = FunPayTools('gkey')
     # ловим сообщение
-    @fp.handler.on_message()
+    @fp.router.on_message()
     async def answer_message(message: Message):
         # отвечаем на сообщение
         await message.answer('Привет')
