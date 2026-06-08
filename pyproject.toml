@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fpx-engine"
-version = "0.5.2"
+version = "0.5.3"
 authors = [
   { name="Be My Code", email="gettofarmila@gmail.com" },
 ]
@@ -17,7 +17,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "httpx[http2]>=0.24.0",
+    "httpx[http2,socks]>=0.24.0",
     "beautifulsoup4>=4.12.0",
 ]
 
