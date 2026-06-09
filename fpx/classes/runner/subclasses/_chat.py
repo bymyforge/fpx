@@ -6,6 +6,7 @@ import re
 from fpx.models.chat import Message
 from fpx.fsm import FSMContext
 from fpx.utils import errors as fpx_err
+from fpx.utils.dependencies import Dependency
 
 logger = logging.getLogger("fpx.chat_runner")
 
@@ -57,30 +58,37 @@ class ChatRunner:
             if first_word in target_command_lower:
                 target_function = target_command_lower[first_word]
                 sig = inspect.signature(target_function)
-                total_params_count = len(sig.parameters)
+                kwargs = {}
+                text_param_names = []
                 has_state = False
-                for param in sig.parameters.values():
+                for param_name, param in sig.parameters.items():
+                    if param.annotation == Message or param_name == 'message':
+                        kwargs[param_name] = message
+                        continue
                     if param.annotation == FSMContext:
+                        kwargs[param_name] = state_ctx
                         has_state = True
-                        break
-                if has_state:
-                    required_args = total_params_count - 2
-                    alowed_args_count = max(0, required_args)
-                    final_args = args[:alowed_args_count]
-                    if len(args) < required_args:
-                        param_names = list(sig.parameters.keys())
-                        missing_param = param_names[2 + len(args)]
-                        raise fpx_err.FpxCommandArgsError(target_function.__name__, missing_param)
-                    await target_function(message, state_ctx, *final_args)
+                        continue
+                    if isinstance(param.default, Dependency):
+                        dep_func = param.default.dependency
+                        if asyncio.iscoroutinefunction(dep_func):
+                            kwargs[param_name] = await dep_func(message)
+                        else:
+                            kwargs[param_name] = dep_func(message)
+                        continue
+                    if param.default == inspect.Parameter.empty:
+                        text_param_names.append(param_name)
+                required_text_args = len(text_param_names)
+                if len(args) < required_text_args:
+                    missing_param = text_param_names[len(args)]
+                    raise fpx_err.FpxCommandArgsError(target_function.__name__, missing_param)
+                for i, param_name in enumerate(text_param_names):
+                    if i < len(args):
+                        kwargs[param_name] = args[i]
+                if asyncio.iscoroutinefunction(target_function):
+                    await target_function(**kwargs)
                 else:
-                    required_args = total_params_count - 1
-                    alowed_args_count = max(0, required_args)
-                    final_args = args[:alowed_args_count]
-                    if len(args) < required_args:
-                        param_names = list(sig.parameters.keys())
-                        missing_param = param_names[1 + len(args)]
-                        raise fpx_err.FpxCommandArgsError(target_function.__name__, missing_param)
-                    await target_function(message, *final_args)
+                    target_function(**kwargs)
                 return True
         return False
 
@@ -177,15 +185,21 @@ class ChatRunner:
                 continue
             async def call_handler(h_func):
                 sig = inspect.signature(h_func)
-                has_state = False
-                for param in sig.parameters.values():
+                kwargs = {}
+                for param_name, param in sig.parameters.items():
+                    if param.annotation == Message or param_name == 'Message':
+                        kwargs[param_name] = message
+                        continue
                     if param.annotation == FSMContext:
-                        has_state = True
-                        break
-                if has_state:
-                    await h_func(message, state_ctx)
-                else:
-                    await h_func(message)
+                        kwargs[param_name] = state_ctx
+                        continue
+                    if isinstance(param.default, Dependency):
+                        dep_func = param.default.dependency
+                        if asyncio.iscoroutinefunction(dep_func):
+                            kwargs[param_name] = await dep_func(message)
+                        else:
+                            kwargs[param_name] = dep_func(message)
+                await h_func(**kwargs)
             if handler['mapping'] is not None:
                 matched = False
                 for trigger, reply in handler['mapping'].items():
