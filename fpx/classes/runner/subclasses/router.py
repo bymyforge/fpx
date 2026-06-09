@@ -1,3 +1,5 @@
+from typing import Callable, Awaitable
+
 from fpx.utils import errors as fpx_err
 
 
@@ -59,14 +61,25 @@ class Router:
     def on_message(
         self,
         text: str | None = None, 
+        contains: str | list[str] | None = None,
+        regex: str | list[str] | None = None,
+        custom: Callable[['Message'], bool | Awaitable[bool]] | None = None,
         mapping: dict[str, str] | None = None, 
-        state: str | None = None
+        state: str | None = None,
+        ignore_chat_id: str | int | list[str | int] | None = None,
+        ignore_sender: str | list[str] | None = None
     ):
         '''Декоратор отслеживает новые сообщения.
         
         Args:
-            - text (str | None): Текст на который начинается сообщение, по которому фильтруется отображение новых сообщений.
-            - mapping (dict | None): Словарь 'ключ': 'значение' для упрощённых ответов, вводи 'Привет' и 'Привет, работаю' и теперь скрипт будет всегда отвечать за тебя Привет, работаю когда тебе пишут привет. Вводи сколько угодно маппинга    
+            - text (str | None): Срабатывает, если сообщение НАЧИНАЕТСЯ с этого текста.
+            - contains (str | list | None): Срабатывает, если в сообщении есть эти ключевые слова (можно строку или список слов).
+            - regex (str | list | None): Фильтр по регуляркам (re.search). Ест сырые строки типа r'^id\d+$' или список паттернов.
+            - custom (Callable | None): Твоя кастомная проверка. Сюда можно закинуть лямбду или синхронную/асинхронную функцию, которая возвращает True/False.
+            - mapping (dict | None): Умный автоответчик. Передаешь словарь {'триггер': 'ответ'}, и скрипт сам ответит за тебя, подставив переменные.
+            - state (str | None): Фильтр по состоянию FSM. Хендлер сработает только если текущий стейт чата совпадает с этим.
+            - ignore_chat_id (str | int | list | None): Черный список для чатов. Айдишники отсюда скрипт будет просто игнорить (одиночный ID или список).
+            - ignore_sender (str | list | None): Черный список для юзеров. Скрипт проигнорит сообщения от них.
 
         Returns:
             Message: Объект, содержащий:    
@@ -80,8 +93,13 @@ class Router:
             self._handlers['message'].append({
                 'function': func,
                 'filter_text': text,
+                'contains': contains,
+                'regex': regex,
+                'custom': custom,
                 'mapping': mapping,
-                'state': state
+                'state': state,
+                'ignore_chat_id': ignore_chat_id,
+                'ignore_sender': ignore_sender
             })
             return func
         return decorator

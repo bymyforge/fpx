@@ -1,6 +1,7 @@
 import inspect
 import logging
 import asyncio
+import re
 
 from fpx.models.chat import Message
 from fpx.fsm import FSMContext
@@ -83,6 +84,75 @@ class ChatRunner:
                 return True
         return False
 
+    async def _check_text_filter(self, msg_text, filter_text, mapping):
+        if filter_text is None:
+            return True
+        if isinstance(filter_text, str) and msg_text.startswith(filter_text.lower()):
+            return True
+        return False
+
+    async def _check_contains_filter(self, msg_text, h_filter):
+        if isinstance(h_filter, str):
+            h_filter = [h_filter]
+        if h_filter is not None:
+            for element in h_filter:
+                if element.lower() in msg_text:
+                    return True
+            return False
+        return True
+
+    async def _check_regex(self, msg_text, h_regex):
+        if isinstance(h_regex, str):
+            h_regex = [h_regex]
+        if h_regex is not None:
+            for element in h_regex:
+                if re.search(element, msg_text):
+                    return True
+            return False
+        return True
+
+    async def _chat_id_check(self, msg: Message, h_chat_id):
+        if isinstance(h_chat_id, str | int):
+            h_chat_id = [h_chat_id]
+        if h_chat_id is not None:
+            for element in h_chat_id:
+                if element == msg.chat_id:
+                    return False
+            return True
+        return True
+
+    async def _sender_check(self, msg: Message, h_sender):
+        if isinstance(h_sender, str | int):
+            h_sender = [h_sender]
+        if h_sender is not None:
+            for element in h_sender:
+                if element == msg.sender:
+                    return False
+            return True
+        return True
+
+    async def _custom_check(self, msg, h_custom):
+        if h_custom is not None:
+            if asyncio.iscoroutinefunction(h_custom):
+                is_match = await h_custom(msg)
+            else:
+                is_match = h_custom(msg)
+            if is_match:
+                return True
+            return False
+        return True
+
+    async def _check_filters(self, message: Message, handler):
+        msg_text = message.text.lower()
+        if await self._check_text_filter(msg_text, handler['filter_text'], handler['mapping']):
+            if await self._check_contains_filter(msg_text, handler['contains']):
+                if await self._check_regex(msg_text, handler['regex']):
+                    if await self._chat_id_check(message, handler['ignore_chat_id']):
+                        if await self._sender_check(message, handler['ignore_sender']):
+                            if await self._custom_check(message, handler['custom']):
+                                return True
+        return False
+
     async def _trigger_message_handlers(self, message):
         if self.runner._account.data.username is None:
             await self.runner._account.profile.get_user_data()
@@ -103,6 +173,8 @@ class ChatRunner:
         for handler in self.runner.router._handlers['message']:
             if handler['state'] != current_state:
                 continue
+            if not await self._check_filters(message, handler):
+                continue
             async def call_handler(h_func):
                 sig = inspect.signature(h_func)
                 has_state = False
@@ -114,9 +186,6 @@ class ChatRunner:
                     await h_func(message, state_ctx)
                 else:
                     await h_func(message)
-            if handler['state'] is not None:
-                await call_handler(handler['function'])
-                break
             if handler['mapping'] is not None:
                 matched = False
                 for trigger, reply in handler['mapping'].items():
@@ -129,17 +198,9 @@ class ChatRunner:
                         await message.answer(formatted_reply)
                         matched = True
                         break
-                if matched:
-                    await call_handler(handler['function'])
-                    break
-            filter_text = handler['filter_text']
-            if filter_text is None and handler['mapping'] is None:
-                await call_handler(handler['function'])
-                break
-            if isinstance(filter_text, str) and msg_text.startswith(filter_text.lower()):
-                await call_handler(handler['function'])
-                break
-
+            await call_handler(handler['function'])
+            break
+            
     async def _check_chats(self):
         await self.runner._chat._update_chat_cache()
         chats = await self.runner._chat._compare_chat_cache()
