@@ -67,9 +67,10 @@ class Router:
         mapping: dict[str, str] | None = None, 
         state: str | None = None,
         ignore_chat_id: str | int | list[str | int] | None = None,
-        ignore_sender: str | list[str] | None = None
+        ignore_sender: str | list[str] | None = None,
+        priority: int = 0
     ):
-        '''Декоратор отслеживает новые сообщения.
+        r'''Декоратор отслеживает новые сообщения.
         
         Args:
             - text (str | None): Срабатывает, если сообщение НАЧИНАЕТСЯ с этого текста.
@@ -80,6 +81,7 @@ class Router:
             - state (str | None): Фильтр по состоянию FSM. Хендлер сработает только если текущий стейт чата совпадает с этим.
             - ignore_chat_id (str | int | list | None): Черный список для чатов. Айдишники отсюда скрипт будет просто игнорить (одиночный ID или список).
             - ignore_sender (str | list | None): Черный список для юзеров. Скрипт проигнорит сообщения от них.
+            - priority (int | None): Приоритет декоратора, чем выше тем раньше проверяется (12 проверит раньше чем 11)
 
         Returns:
             Message: Объект, содержащий:    
@@ -99,8 +101,10 @@ class Router:
                 'mapping': mapping,
                 'state': state,
                 'ignore_chat_id': ignore_chat_id,
-                'ignore_sender': ignore_sender
+                'ignore_sender': ignore_sender,
+                'priority': priority
             })
+            self._handlers['message'].sort(key=lambda h: h['priority'], reverse=True)
             return func
         return decorator
 
