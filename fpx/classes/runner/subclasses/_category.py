@@ -1,5 +1,8 @@
 import asyncio
+import inspect
 
+from fpx.models.lots import CategoryLastLot
+from fpx.utils.dependencies import Dependency
 
 class CategoryRunner:
     def __init__(self, runner):
@@ -69,6 +72,21 @@ class CategoryRunner:
                 result.append(lot)
         return result
 
+    async def _call_handler(self, h_func, lot):
+                    sig = inspect.signature(h_func)
+                    kwargs = {}
+                    for param_name, param in sig.parameters.items():
+                        if param.annotation == CategoryLastLot:
+                            kwargs[param_name] = lot
+                            continue
+                        if isinstance(param.default, Dependency):
+                            dep_func = param.default.dependency
+                            if asyncio.iscoroutinefunction(dep_func):
+                                kwargs[param_name] = await dep_func(lot)
+                            else:
+                                kwargs[param_name] = dep_func(lot)
+                    await h_func(**kwargs)
+
     async def _check_lot_categories(self, lot_category_ids):
         await self._update_lot_category_cache(lot_category_ids)
         lots = await self._compare_lot_category_cache()
@@ -77,7 +95,7 @@ class CategoryRunner:
                 if lot.owner_username == self.runner._account.data.username:
                     continue
                 for handler in self.runner.router._handlers['lot_category']:
-                    asyncio.create_task(handler(lot))
+                    await self._call_handler(handler, lot)
 
     async def _check_chip_categories(self, chip_category_ids):
         await self._update_chip_category_cache(chip_category_ids)
@@ -87,4 +105,4 @@ class CategoryRunner:
                 if lot.owner_username == self.runner._account.data.username:
                     continue
                 for handler in self.runner.router._handlers['chip_category']:
-                    asyncio.create_task(handler(lot))
+                    await self._call_handler(handler, lot)

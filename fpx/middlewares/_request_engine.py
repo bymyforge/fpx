@@ -30,7 +30,7 @@ class RequestEngine:
                 if response.status_code == 429:
                     sleep_time = int(response.headers.get('Retry-After', 5))
                     if self.runner:
-                        for handler in self.runner.handler._handlers['flood']:
+                        for handler in self.runner.router._handlers['flood']:
                             asyncio.create_task(handler(sleep_time))
                     await asyncio.sleep(sleep_time)
                     return await self.execute(method, url, **kwargs)

@@ -4,6 +4,7 @@ import logging
 
 from fpx.models.account import Order
 from fpx.fsm import FSMContext
+from fpx.utils.dependencies import Dependency
 
 logger = logging.getLogger("fpx.order_runner")
 
@@ -41,6 +42,24 @@ class OrderRunner:
                     result.append(Order(**order))
         return result
 
+    async def _call_handler(self, h_func, order, state_ctx):
+                    sig = inspect.signature(h_func)
+                    kwargs = {}
+                    for param_name, param in sig.parameters.items():
+                        if param.annotation == Order:
+                            kwargs[param_name] = order
+                            continue
+                        if param.annotation == FSMContext:
+                            kwargs[param_name] = state_ctx
+                            continue
+                        if isinstance(param.default, Dependency):
+                            dep_func = param.default.dependency
+                            if asyncio.iscoroutinefunction(dep_func):
+                                kwargs[param_name] = await dep_func(order)
+                            else:
+                                kwargs[param_name] = dep_func(order)
+                    await h_func(**kwargs)
+
     async def _check_handler(self, handler, order, state_ctx):
         h_func = handler['function']
         if handler.get('mapping') is not None:
@@ -53,16 +72,8 @@ class OrderRunner:
                     break
             if not matched:
                 return False
-        sig = inspect.signature(h_func)
-        has_state = False
-        for param in sig.parameters.values():
-            if param.annotation == FSMContext:
-                has_state = True
-                break
-        if has_state:
-            await h_func(order, state_ctx)
-        else:
-            await h_func(order)
+        await self._call_handler(h_func, order, state_ctx)
+        return True
 
     async def _check_trigger_for_command(self, order: Order, state_ctx: FSMContext):
         if order.description is None:
@@ -78,33 +89,33 @@ class OrderRunner:
                     break 
             if target_function is None:
                 continue
-            sig = inspect.signature(target_function)
-            has_state = False
-            for param in sig.parameters.values():
-                if param.annotation == FSMContext:
-                    has_state = True
-                    break
-            if has_state:
-                await target_function(order, state_ctx)
-            else:
-                await target_function(order)
+            await self._call_handler(target_function, order, state_ctx)
             return True
         return False
 
     async def _trigger_order_handlers(self, order: Order):
         state_ctx = FSMContext(self.runner.storage, order.chat_id)
         status = order.status.lower()
+        matched = False
         for handler in self.runner.router._handlers['order']:
-            await self._check_handler(handler, order, state_ctx)
+            if await self._check_handler(handler, order, state_ctx):
+                matched = True
         if status in ('закрыт', 'closed', 'закрито'):
             for handler in self.runner.router._handlers['confirmed_order']:
-                await self._check_handler(handler, order, state_ctx)
+                if await self._check_handler(handler, order, state_ctx):
+                    matched = True
         elif status in ('оплачен', 'оплачено', 'paid', 'відкрито'):
             for handler in self.runner.router._handlers['new_order']:
-                await self._check_handler(handler, order, state_ctx)
-            await self._check_trigger_for_command(order, state_ctx)
+                if await self._check_handler(handler, order, state_ctx):
+                    matched = True
+            if await self._check_trigger_for_command(order, state_ctx):
+                matched = True
         elif status in ('возврат', 'повернення', 'refund'):
             for handler in self.runner.router._handlers['refund']:
+                if await self._check_handler(handler, order, state_ctx):
+                    matched = True
+        if not matched:
+            for handler in self.runner.router._handlers['order']:
                 await self._check_handler(handler, order, state_ctx)
 
     async def _process_single_order(self, order: Order):
