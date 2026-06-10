@@ -22,7 +22,7 @@ class ChatRunner:
         if self.runner._cache['msgs'] != self.runner._cache['old_msgs']:
             for message in self.runner._cache['msgs']:
                 if message not in self.runner._cache['old_msgs']:
-                    stop_words = ('оплатил заказ', 'можете перейти в discord', 'написал отзыв', 'изменил отзыв', 'вернул деньги', 'подтвердил успешное выполнение')
+                    stop_words = ('оплатил заказ', 'можете перейти в discord', 'написал отзыв', 'изменил отзыв', 'вернул деньги', 'подтвердил успешное выполнение', 'удалил отзыв', 'оплатив замовлення', 'можете перейти в discord', 'написав відгук', 'змінив відгук', 'повернув гроші', 'підтвердив успішне виконання', 'видалив відгук', 'paid for the order', 'you can go to discord', 'left a review', 'changed the review', 'refunded money', 'confirmed successful completion', 'deleted the review')
                     msg_lower = message['last_msg'].lower()
                     if not any(word in msg_lower for word in stop_words):
                         result.append(Message(sender=message['sender'], chat_id=message['chat_id'], text=message['last_msg'], is_system=False))
