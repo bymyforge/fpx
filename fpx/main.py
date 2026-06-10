@@ -2,10 +2,10 @@ import httpx
 
 from fpx.classes.account.account import Account
 from fpx.classes.runner.runner import Runner
-from fpx.fsm import MemoryStorage, BaseStorage, FileStorage
+from fpx.fsm import MemoryStorage, BaseStorage, FileStorage, RedisStorage
 
 class FunPayTools:
-    def __init__(self, gkey, storage: BaseStorage | FileStorage | None = None, proxy = None, http_client = None):
+    def __init__(self, gkey, storage: BaseStorage | FileStorage | RedisStorage | None = None, proxy = None, http_client = None):
         self._cookies = {
             'golden_key': gkey,
             'locale': 'ru'

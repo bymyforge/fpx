@@ -10,7 +10,7 @@ authors = [
 ]
 description = "Автоматизация работы с FunPay"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -19,6 +19,14 @@ classifiers = [
 dependencies = [
     "httpx[http2,socks]>=0.24.0",
     "beautifulsoup4>=4.12.0",
+]
+[project.optional-dependencies]
+redis = ["redis[hiredis]>=5.0.0"]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "pre-commit>=3.7",
+    "ruff>=0.4",
 ]
 
 [project.urls]
