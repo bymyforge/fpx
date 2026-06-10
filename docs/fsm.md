@@ -1,128 +1,124 @@
-<h1 align="center">🧠 Машина состояний (FSM)</h1>
+# Машина состояний (FSM)
 
-<p>При создании сложных ботов часто нужно вести диалог с покупателем по шагам. Например: сначала бот ждет от пользователя ссылку, затем игровой ник, а только потом выдает товар. Для реализации такой логики в <code>fpx-engine</code> встроен инструмент <b>FSM (Finite State Machine)</b>.</p>
+Для пошаговых диалогов. Каждый чат имеет свой независимый контекст.
 
-<p>Машина состояний автоматически привязывается к уникальному <code>chat_id</code> переписки, поэтому у каждого покупателя будет свой независимый контекст общения.</p>
+---
 
-<hr>
+## Как работает
 
-<h2>📦 1. Как это устроено под капотом</h2>
+- **Storage** — хранилище состояний. По умолчанию `MemoryStorage` (в памяти, сбрасывается при перезапуске). Есть `FileStorage` (сохраняет в JSON-файл).
+- **FSMContext** — объект через который управляешь состоянием конкретного чата.
 
-<ul>
-  <li><b>Хранилище (Storage):</b> Базовый класс <code>BaseStorage</code> задает стандарт для сохранения стейтов. По умолчанию фреймворк предоставляет <code>MemoryStorage</code> — это быстрое хранилище в оперативной памяти (сбрасывается при перезапуске бота).</li>
-  <li><b>Контекст (FSMContext):</b> Удобная прослойка, которая летает внутри ваших хендлеров. Через нее вы меняете состояния и сохраняете временные данные конкретного чата.</li>
-</ul>
+---
 
-<hr>
+## Пример диалога
 
-<h2>💻 2. Пример реализации (Пошаговый диалог)</h2>
-
-<p>Смотри, как легко реализовать скрипт, который активируется при новом сообщении, включает стейт ожидания никнейма, запоминает его и финализирует сделку:</p>
-
-<pre><code class="language-python">from fpx import FunPayTools, Message
+```python
+from fpx import FunPayTools, Message
 from fpx.fsm import FSMContext
 
-fp = FunPayTools("ВАШ_GOLDEN_KEY")
+fp = FunPayTools('gkey')
 
-# 1. Определяем строковые стейты для этапов диалога
-class States:
-    wait_for_nickname = "wait_for_nickname"
-    wait_for_confirm = "wait_for_confirm"
-
-# Хендлер на команду /start
-@fp.handler.on_message(text='/start')
+@fp.router.on_message(text='!start')
 async def start_dialog(message: Message, state: FSMContext):
-    await message.answer("Привет! Для выдачи товара введи свой игровой никнейм:")
-    # Включаем состояние ожидания ника
-    await state.set_state(States.wait_for_nickname)
+    await message.answer('Привет, введи свой ник')
+    await state.set_state('waiting_nickname')
 
-# Хендлер обрабатывает сообщения, ТОЛЬКО если у юзера стейт 'wait_for_nickname'
-@fp.handler.on_message(state=States.wait_for_nickname)
-async def process_nickname(message: Message, state: FSMContext):
-    # Сохраняем введенный ник во временные данные контекста
-    await state.update_data(nickname=message.text)
-    await message.answer(f"Отлично, я запомнил ник {message.text}.\nТеперь напиши 'да' для подтверждения:")
-    # Переводим на следующий шаг
-    await state.set_state(States.wait_for_confirm)
+@fp.router.on_message(state='waiting_nickname')
+async def get_nickname(message: Message, state: FSMContext):
+    nick = message.text
+    await state.update_data(nick=nick)
+    await message.answer('Теперь введи пароль')
+    await state.set_state('waiting_pass')
 
-# Финальный шаг
-@fp.handler.on_message(state=States.wait_for_confirm)
-async def process_confirm(message: Message, state: FSMContext):
-    if message.text.lower() == "да":
-        # Достаем ранее сохраненные данные
-        user_data = await state.get_data()
-        saved_nick = user_data.get("nickname")
-        
-        await message.answer(f"Выдача на ник {saved_nick} успешно завершена!")
-        # Очищаем стейт и данные, возвращая чат в дефолтное состояние
-        await state.clear_state()
-    else:
-        await message.answer("Пожалуйста, напиши 'да' для подтверждения или начни заново.")</code></pre>
+@fp.router.on_message(state='waiting_pass')
+async def get_pass(message: Message, state: FSMContext):
+    await state.update_data(password=message.text)
+    await message.answer('Вы уверены? Да/Нет')
+    await state.set_state('waiting_confirm')
 
-<hr>
+@fp.router.on_message(state='waiting_confirm')
+async def get_confirm(message: Message, state: FSMContext):
+    data = await state.get_data()
+    await message.answer(f"Принято! Ник: {data.get('nick')}, пароль: {data.get('password')}")
+    await state.clear_state()
+```
 
-<h2>📚 3. Справочник методов FSMContext (Шпаргалка)</h2>
+---
 
-<p>Эти асинхронные методы доступны у объекта <code>state</code>, который вы принимаете аргументом в хендлерах.</p>
+## FSMContext методы
 
-<table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
-  <thead>
-    <tr style="background-color: rgba(0,176,255,0.1); border-bottom: 2px solid #00b0ff;">
-      <th style="padding: 10px; text-align: left; width: 25%;">Метод</th>
-      <th style="padding: 10px; text-align: left; width: 25%;">Что принимает</th>
-      <th style="padding: 10px; text-align: left; width: 20%;">Что возвращает</th>
-      <th style="padding: 10px; text-align: left; width: 30%;">Краткое описание</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-      <td style="padding: 10px;"><code>await state.set_state()</code></td>
-      <td style="padding: 10px;"><code>state: str | None</code></td>
-      <td style="padding: 10px;"><code>None</code></td>
-      <td>Устанавливает текущее состояние для чата. Если передать <code>None</code>, стейт сотрется.</td>
-    </tr>
-    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-      <td style="padding: 10px;"><code>await state.get_state()</code></td>
-      <td style="padding: 10px;"><i>нет</i></td>
-      <td style="padding: 10px;"><code>str | None</code></td>
-      <td>Возвращает строковое название текущего состояния чата. Если состояния нет — вернет <code>None</code>.</td>
-    </tr>
-    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-      <td style="padding: 10px;"><code>await state.update_data()</code></td>
-      <td style="padding: 10px;"><code>**kwargs</code> (именованные аргументы)</td>
-      <td style="padding: 10px;"><code>None</code></td>
-      <td>Сохраняет или обновляет временные данные внутри контекста (например: <code>balance=500, step=2</code>).</td>
-    </tr>
-    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-      <td style="padding: 10px;"><code>await state.get_data()</code></td>
-      <td style="padding: 10px;"><i>нет</i></td>
-      <td style="padding: 10px;"><code>dict</code></td>
-      <td>Возвращает словарь со всеми сохраненными временными данными этого чата.</td>
-    </tr>
-    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-      <td style="padding: 10px;"><code>await state.clear_state()</code></td>
-      <td style="padding: 10px;"><i>нет</i></td>
-      <td style="padding: 10px;"><code>None</code></td>
-      <td>Полностью очищает состояние и удаляет все связанные временные данные из хранилища.</td>
-    </tr>
-  </tbody>
-</table>
+| Метод | Принимает | Возвращает | Описание |
+|-------|-----------|------------|----------|
+| `await state.set_state(state)` | `str` или `None` | — | Установить стейт. `None` — сбросить |
+| `await state.get_state()` | — | `str` или `None` | Текущий стейт |
+| `await state.update_data(**kwargs)` | kwargs | — | Сохранить данные |
+| `await state.get_data()` | — | `dict` | Получить сохранённые данные |
+| `await state.clear_state()` | — | — | Удалить стейт и данные |
 
-<hr>
+---
 
-<h2>🔧 4. Создание кастомного хранилища (Для продвинутых)</h2>
+## Хранилища
 
-<p>Если вам нужно, чтобы стейты сохранялись даже после перезапуска бота (например, в базу данных Redis, SQLite или PostgreSQL), вы можете унаследовать свой класс от <code>BaseStorage</code> и переопределить ключевые методы:</p>
+### MemoryStorage (по умолчанию)
 
-<pre><code class="language-python">from fpx.fsm import BaseStorage
+```python
+from fpx import FunPayTools
 
-class AsyncSqliteStorage(BaseStorage):
-    async def set_state(self, chat_id: str, state: str | None):
-        # Ваша логика записи стейта в БД
+fp = FunPayTools('gkey')  # MemoryStorage используется автоматически
+```
+
+### FileStorage
+
+```python
+from fpx import FunPayTools
+from fpx.fsm import FileStorage
+
+fp = FunPayTools('gkey', storage=FileStorage('states.json'))
+```
+
+Состояния сохраняются в JSON-файл и переживают перезапуск.
+
+### Кастомное хранилище
+
+Наследуйся от `BaseStorage` и переопредели методы:
+
+```python
+from fpx.fsm import BaseStorage
+
+class RedisStorage(BaseStorage):
+    async def set_state(self, chat_id, state):
+        # твоя логика
         pass
 
-    async def get_state(self, chat_id: str) -> str | None:
-        # Ваша логика чтения стейта из БД
+    async def get_state(self, chat_id):
         pass
-        
-    # И так далее для update_data, get_data и clear_state</code></pre>
+
+    async def update_data(self, chat_id, **kwargs):
+        pass
+
+    async def get_data(self, chat_id):
+        return {}
+
+    async def clear_state(self, chat_id):
+        pass
+```
+
+---
+
+## Dependency
+
+Можно прокидывать зависимости в хендлеры через `Dependency`. Пример из роутера команд:
+
+```python
+from fpx import Dependency
+
+async def get_cur_user(message: Message):
+    return {'id': message.sender, 'vip': True}
+
+@fp.router.on_message(state='waiting_nickname')
+async def handler(message: Message, user: User = Dependency(get_cur_user)):
+    print(user)
+```
+
+Функция-зависимость получает `message` и `state` автоматически и возвращает объект, который попадает в параметр хендлера.

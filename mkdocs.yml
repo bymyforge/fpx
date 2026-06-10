@@ -6,24 +6,22 @@ theme:
   name: material
   language: ru
   features:
-    - navigation.tabs          # Удобное верхнее меню
-    - navigation.sections      # Разделы в боковом меню
-    - code.copy                # Кнопка копирования кода при наведении
-    - navigation.top           # Кнопка "Наверх" при скролле
+    - navigation.tabs
+    - navigation.sections
+    - code.copy
+    - navigation.top
   palette:
-    # Настройки для Светлой темы
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: indigo          # Основной цвет (шапка, меню) - приятный сине-фиолетовый
-      accent: blue             # Цвет ссылок и активных элементов
+      primary: indigo
+      accent: blue
       toggle:
         icon: material/brightness-7
         name: Включить тёмную тему
-    # Настройки для Тёмной темы (будет выглядеть мега-премиально)
     - media: "(prefers-color-scheme: dark)"
-      scheme: slate            # Глубокий грифельный/угольный цвет фона вместо ядовито-чёрного
-      primary: black           # Чистая чёрная шапка
-      accent: cyan             # Неоновые акценты для ссылок (светло-голубой)
+      scheme: slate
+      primary: black
+      accent: cyan
       toggle:
         icon: material/brightness-4
         name: Включить светлую тему
@@ -31,20 +29,19 @@ theme:
 nav:
   - Главная: index.md
   - Быстрый старт: quickstart.md
+  - Роутер и хендлеры: router.md
+  - Модели: models.md
+  - Функционал:
+    - Чаты и сообщения: chat.md
+    - Заказы: orders.md
+    - Отзывы: review.md
+    - Профиль и баланс: profile.md
+    - Лоты и поднятие: lots.md
+    - Редактор лотов: editor.md
+    - Мониторинг категорий: category.md
+  - Машина состояний: fsm.md
   - Ошибки: errors.md
-  - Основной функционал:
-      - Модели и типы данных: models.md
-      - Обработка сообщений: chat.md
-      - Работа с заказами: orders.md
-      - Отзывы и фидбек: review.md
-      - Профиль и баланс: profile.md
-      - Управление лотами: lots.md
-      - Редактор товаров: editor.md
-      - Мониторинг рынка: category.md
-  - Продвинутый уровень:
-      - Машина состояний (FSM): fsm.md
-  - Примеры скриптов: examples.md
-  - Список методов: api.md
+  - API: api.md
 
 markdown_extensions:
   - pymdownx.highlight:
