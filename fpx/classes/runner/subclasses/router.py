@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Callable, Awaitable
 
 from fpx.utils import errors as fpx_err
