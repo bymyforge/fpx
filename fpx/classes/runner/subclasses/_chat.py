@@ -70,14 +70,20 @@ class ChatRunner:
                         has_state = True
                         continue
                     if isinstance(param.default, Dependency):
-                        dep_func = param.default.dependency
-                        if asyncio.iscoroutinefunction(dep_func):
-                            kwargs[param_name] = await dep_func(message)
-                        else:
-                            kwargs[param_name] = dep_func(message)
-                        continue
-                    if param.default == inspect.Parameter.empty:
-                        text_param_names.append(param_name)
+                            dep_func = param.default.dependency
+                            dep_sig = inspect.signature(dep_func)
+                            dep_kwargs = {}
+                            if "message" in dep_sig.parameters or any(p.annotation == Message for p in dep_sig.parameters.values()):
+                                msg_param_name = next((k for k, v in dep_sig.parameters.items() if v.annotation == Message or k == 'message'), 'message')
+                                dep_kwargs[msg_param_name] = message
+                            if any(p.annotation == FSMContext for p in dep_sig.parameters.values()):
+                                state_param_name = next((k for k, v in dep_sig.parameters.items() if v.annotation == FSMContext), 'state')
+                                dep_kwargs[state_param_name] = state_ctx
+                            if asyncio.iscoroutinefunction(dep_func):
+                                kwargs[param_name] = await dep_func(**dep_kwargs)
+                            else:
+                                kwargs[param_name] = dep_func(**dep_kwargs)
+                            continue
                 required_text_args = len(text_param_names)
                 if len(args) < required_text_args:
                     missing_param = text_param_names[len(args)]
