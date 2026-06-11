@@ -4,7 +4,6 @@ import logging
 
 from fpx.models.account import Order
 from fpx.fsm import FSMContext
-from fpx.utils.dependencies import Dependency
 
 logger = logging.getLogger("fpx.order_runner")
 
@@ -42,24 +41,6 @@ class OrderRunner:
                     result.append(Order(**order))
         return result
 
-    async def _call_handler(self, h_func, order, state_ctx):
-                    sig = inspect.signature(h_func)
-                    kwargs = {}
-                    for param_name, param in sig.parameters.items():
-                        if param.annotation == Order:
-                            kwargs[param_name] = order
-                            continue
-                        if param.annotation == FSMContext:
-                            kwargs[param_name] = state_ctx
-                            continue
-                        if isinstance(param.default, Dependency):
-                            dep_func = param.default.dependency
-                            if asyncio.iscoroutinefunction(dep_func):
-                                kwargs[param_name] = await dep_func(order)
-                            else:
-                                kwargs[param_name] = dep_func(order)
-                    await h_func(**kwargs)
-
     async def _check_handler(self, handler, order, state_ctx):
         h_func = handler['function']
         if handler.get('mapping') is not None:
@@ -72,7 +53,7 @@ class OrderRunner:
                     break
             if not matched:
                 return False
-        await self._call_handler(h_func, order, state_ctx)
+        await self.runner.router.invoke(h_func, order, state_ctx)
         return True
 
     async def _check_trigger_for_command(self, order: Order, state_ctx: FSMContext):
@@ -89,7 +70,7 @@ class OrderRunner:
                     break 
             if target_function is None:
                 continue
-            await self._call_handler(target_function, order, state_ctx)
+            await self.runner.router.invoke(target_function, order, state_ctx)
             return True
         return False
 
@@ -127,7 +108,7 @@ class OrderRunner:
             await self._trigger_order_handlers(order)
         except Exception as e:
             logger.debug(f'В процессе обработки заказа произошла ошибка: {e}. Убедитесь что всё хорошо')
-            await self.runner._handle_error(event=message, exception=e)
+            await self.runner._handle_error(event=order, exception=e)
 
     async def _check_orders(self):
         await self.runner._order._update_order_cache()

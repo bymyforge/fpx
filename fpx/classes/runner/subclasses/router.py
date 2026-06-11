@@ -1,8 +1,12 @@
 from __future__ import annotations
+import inspect
+import asyncio
 
 from typing import Callable, Awaitable
 
 from fpx.utils import errors as fpx_err
+from fpx.fsm import FSMContext
+from fpx.utils.dependencies import Dependency
 
 
 class Router:
@@ -24,7 +28,43 @@ class Router:
             'startup': [],
             'flood': []
         }
-        
+        self._middlewares = []
+
+    def middleware(self):
+        '''Декоратор регистрации мидлваря'''
+        def decorator(func):
+            self._middlewares.append(func)
+            return func
+        return decorator
+
+    async def invoke(self, h_func, event, state_ctx=None):
+        '''Вызывает хендлер'''
+        async def endpoint(ev):
+            sig = inspect.signature(h_func)
+            kwargs = {}
+            for param_name, param in sig.parameters.items():
+                if param.annotation == type(ev) or param_name in ('message', 'order', 'review', 'lot'):
+                    kwargs[param_name] = ev
+                    continue
+                if state_ctx and param.annotation == FSMContext:
+                    kwargs[param_name] = state_ctx
+                    continue
+                if isinstance(param.default, Dependency):
+                    dep_func = param.default.dependency
+                    if asyncio.iscoroutinefunction(dep_func):
+                        await dep_func(ev)
+                    else:
+                        dep_func(ev)
+            await h_func(**kwargs)
+        call_next = endpoint
+        for mw in reversed(self._middlewares):
+            async def make_next(mw=mw, next_=call_next):
+                async def call(ev):
+                    return await mw(ev, next_)
+                return call
+            call_next = await make_next()
+        await call_next(event)
+
     def include_router(self, router: Router):
         '''Метод для подключения плагинов и сторонних роутеров'''
         for event_type, funcs in router._handlers.items():

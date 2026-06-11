@@ -3,7 +3,6 @@ import logging
 import inspect
 
 from fpx.models.account import CurReview, Order
-from fpx.utils.dependencies import Dependency
 
 logger = logging.getLogger("fpx.review_runner")
 
@@ -26,21 +25,6 @@ class ReviewRunner:
                 result.append(review)
         return result
 
-    async def _call_handler(self, h_func, review):
-                    sig = inspect.signature(h_func)
-                    kwargs = {}
-                    for param_name, param in sig.parameters.items():
-                        if param.annotation == CurReview or param_name == 'review':
-                            kwargs[param_name] = review
-                            continue
-                        if isinstance(param.default, Dependency):
-                            dep_func = param.default.dependency
-                            if asyncio.iscoroutinefunction(dep_func):
-                                kwargs[param_name] = await dep_func(review)
-                            else:
-                                kwargs[param_name] = dep_func(review)
-                    await h_func(**kwargs)
-
     async def _target_review_processing(self, review: CurReview):
         try:
             order = await self.runner._account.order.get_order_details(review.order_id)
@@ -48,13 +32,13 @@ class ReviewRunner:
             review.order = order
             for handler in self.runner.router._handlers['review']:
                 if handler['stars'] is None:
-                    await self._call_handler(handler['function'], review)
+                    await self.runner.router.invoke(handler['function'], review)
                 else:
                     if review.stars == handler['stars']:
-                        await self._call_handler(handler['function'], review)
+                        await self.runner.router.invoke(handler['function'], review)
         except Exception as e:
             logger.debug(f'В процессе обработки отзыва произошла ошибка: {e}. Убедитесь что всё хорошо')
-            await self.runner._handle_error(event=message, exception=e)
+            await self.runner._handle_error(event=review, exception=e)
 
     async def _check_reviews(self):
         await self.runner._review._update_review_cache()
