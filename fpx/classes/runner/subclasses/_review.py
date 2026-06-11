@@ -54,6 +54,7 @@ class ReviewRunner:
                         await self._call_handler(handler['function'], review)
         except Exception as e:
             logger.debug(f'В процессе обработки отзыва произошла ошибка: {e}. Убедитесь что всё хорошо')
+            await self.runner._handle_error(event=message, exception=e)
 
     async def _check_reviews(self):
         await self.runner._review._update_review_cache()

@@ -127,6 +127,7 @@ class OrderRunner:
             await self._trigger_order_handlers(order)
         except Exception as e:
             logger.debug(f'В процессе обработки заказа произошла ошибка: {e}. Убедитесь что всё хорошо')
+            await self.runner._handle_error(event=message, exception=e)
 
     async def _check_orders(self):
         await self.runner._order._update_order_cache()

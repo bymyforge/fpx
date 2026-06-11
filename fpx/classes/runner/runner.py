@@ -104,3 +104,14 @@ class Runner:
             self._review._check_reviews()
         ])
         await asyncio.gather(*tasks)
+
+    async def _handle_error(self, event: any, exception: Exception):
+        '''Централизованная обработка любых ошибок.
+        event может быть Message, Order, Review или None. Советую проверять через if isinstanse(exception, fpx_err...)
+        '''
+        error_handler = self.runner.router._handlers.get('error')
+        if error_handler:
+                if asyncio.iscoroutinefunction(error_handler):
+                    await error_handler(event, exception)
+                else:
+                    error_handler(event, exception)

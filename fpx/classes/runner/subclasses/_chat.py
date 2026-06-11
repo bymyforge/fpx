@@ -183,6 +183,7 @@ class ChatRunner:
                 await self.runner.router._handlers['error'](message, e)
             else:
                 logger.debug(f'Ошибка при обработке сообщения: {e}', exc_info=True)
+                await self.runner._handle_error(event=message, exception=e)
             return
         for handler in self.runner.router._handlers['message']:
             if handler['state'] != current_state:
@@ -241,5 +242,6 @@ class ChatRunner:
                     await self._trigger_message_handlers(chat_msg)
                 except Exception as e:
                     logger.debug(f"Ошибка при параллельной обработке чата {chat_cache_obj.chat_id}: {e}", exc_info=True)
+                    await self.runner._handle_error(event=message, exception=e)
             tasks = [process_single_chat(chat) for chat in chats]
             await asyncio.gather(*tasks)
