@@ -87,6 +87,12 @@ class Order:
                         )
         return await self._client._account.chat.send_message(self.chat_id, formatted_reply)
 
+    async def refund(self) -> bool:
+        '''Вернуть заказ'''
+        if not self._client:
+            raise fpx_err.FpxClientNotAttachedError('Объект Order не привязан к клиенту fpx')
+        return await self._client._account.order.refund_order(self.order_id)
+
 @dataclass
 class Review:
     text: str
