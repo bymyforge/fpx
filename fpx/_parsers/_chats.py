@@ -61,6 +61,8 @@ class ChatParser(BaseParser):
                     res = {'is_system': False}
                     msg_tag = chat.find('div', class_='chat-msg-text')
                     res['message'] = msg_tag.get_text(separator='\n').strip() if msg_tag else ''
+                    if not res['message']:
+                        res['message'] = msg_tag.find('a', class_='chat-img-link').get('href') or ''
                     author_block = None
                     current_node = chat
                     while current_node:

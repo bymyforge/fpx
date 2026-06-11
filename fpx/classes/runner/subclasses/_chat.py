@@ -229,10 +229,12 @@ class ChatRunner:
                 try:
                     msg_obj = await self.runner._account.chat.get_chat_data(chat_cache_obj.chat_id)
                     message = msg_obj.last_message
+                    stop_list = ['изображение', 'image', 'зображення']
+                    text = chat_cache_obj.text if chat_cache_obj.text.lower() not in stop_list else message.text
                     chat_msg = Message(
                         sender=message.sender, 
                         chat_id=chat_cache_obj.chat_id, 
-                        text=chat_cache_obj.text, 
+                        text=text, 
                         is_system=message.is_system
                     )   
                     chat_msg._client = self.runner
