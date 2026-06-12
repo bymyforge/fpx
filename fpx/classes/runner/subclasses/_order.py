@@ -95,9 +95,6 @@ class OrderRunner:
             for handler in self.runner.router._handlers['refund']:
                 if await self._check_handler(handler, order, state_ctx):
                     matched = True
-        if not matched:
-            for handler in self.runner.router._handlers['order']:
-                await self._check_handler(handler, order, state_ctx)
 
     async def _process_single_order(self, order: Order):
         try:

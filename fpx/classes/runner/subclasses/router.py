@@ -52,9 +52,9 @@ class Router:
                 if isinstance(param.default, Dependency):
                     dep_func = param.default.dependency
                     if asyncio.iscoroutinefunction(dep_func):
-                        await dep_func(ev)
+                        kwargs[param_name] = await dep_func(ev)
                     else:
-                        dep_func(ev)
+                        kwargs[param_name] = dep_func(ev)
             await h_func(**kwargs)
         call_next = endpoint
         for mw in reversed(self._middlewares):
@@ -166,6 +166,7 @@ class Router:
                 - name (str): Название товара   
                 - anwer (method): При указании текста в аргументах, отвечает на сообщение       
         '''
+        mapping = [mapping] if isinstance(mapping, str) else mapping
         def decorator(func):
             self._handlers['order'].append({
                 'function': func,
@@ -188,6 +189,7 @@ class Router:
                 - name (str): Название товара   
                 - anwer (method): При указании текста в аргументах, отвечает на сообщение       
         '''
+        mapping = [mapping] if isinstance(mapping, str) else mapping
         def decorator(func):
             self._handlers['confirmed_order'].append({
                 'function': func,
@@ -213,6 +215,7 @@ class Router:
                 - name (str): Название товара   
                 - anwer (method): При указании текста в аргументах, отвечает на сообщение       
         '''
+        mapping = [mapping] if isinstance(mapping, str) else mapping
         def decorator(func):
             self._handlers['new_order'].append({
                 'function': func,
@@ -256,6 +259,7 @@ class Router:
                 - name (str): Название товара   
                 - anwer (method): При указании текста в аргументах, отвечает на сообщение       
         '''
+        mapping = [mapping] if isinstance(mapping, str) else mapping
         def decorator(func):
             self._handlers['refund'].append({
                 'function': func,
