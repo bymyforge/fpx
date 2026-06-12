@@ -178,9 +178,12 @@ class ChatRunner:
         chats = await self.runner._chat._compare_chat_cache()
         if chats:
             async def process_single_chat(chat_cache_obj):
+                chat_msg = None
                 try:
                     msg_obj = await self.runner._account.chat.get_chat_data(chat_cache_obj.chat_id)
                     message = msg_obj.last_message
+                    if message is None:
+                        return
                     stop_list = ['изображение', 'image', 'зображення']
                     text = chat_cache_obj.text if chat_cache_obj.text.lower() not in stop_list else message.text
                     chat_msg = Message(
@@ -193,6 +196,6 @@ class ChatRunner:
                     await self._trigger_message_handlers(chat_msg)
                 except Exception as e:
                     logger.debug(f"Ошибка при параллельной обработке чата {chat_cache_obj.chat_id}: {e}", exc_info=True)
-                    await self.runner._handle_error(event=message, exception=e)
+                    await self.runner._handle_error(event=chat_msg, exception=e)
             tasks = [process_single_chat(chat) for chat in chats]
             await asyncio.gather(*tasks)
