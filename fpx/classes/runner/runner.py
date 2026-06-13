@@ -109,8 +109,9 @@ class Runner:
         '''Централизованная обработка любых ошибок.
         event может быть Message, Order, Review или None. Советую проверять через if isinstanse(exception, fpx_err...)
         '''
-        error_handler = self.router._handlers.get('error')
-        if error_handler:
+        error_handlers = self.router._handlers.get('error', [])
+        for handler in error_handlers:
+            if error_handler:
                 if asyncio.iscoroutinefunction(error_handler):
                     await error_handler(event, exception)
                 else:

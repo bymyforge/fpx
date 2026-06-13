@@ -6,7 +6,8 @@ from fpx.utils import errors as fpx_err
 
 @dataclass
 class CurrentLotInfo:
-    short_desc: str
+    id: str
+    short_desc: str | int
     description: str
     price: float
     _client: Any = field(init=False, repr=False, default=None)

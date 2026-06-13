@@ -170,6 +170,8 @@ class ChatRunner:
                         await message.answer(formatted_reply)
                         matched = True
                         break
+                    if not matched:
+                        continue 
             await self.runner.router.invoke(handler['function'], message, state_ctx)
             break
             

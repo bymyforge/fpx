@@ -28,12 +28,17 @@ class RequestEngine:
                 response = await self._client.request(method, url, **kwargs)
                 # флуд контрль
                 if response.status_code == 429:
-                    sleep_time = int(response.headers.get('Retry-After', 5))
+                    if attempt == attempts - 1:
+                        raise fpx_err.FpxRequestError(message=f"Превышено количество попыток запроса (Flood/429) к {url}")
+                    try:
+                        sleep_time = int(response.headers.get('Retry-After', 5))
+                    except (ValueError, TypeError):
+                        sleep_time = 5
                     if self.runner:
                         for handler in self.runner.router._handlers['flood']:
                             asyncio.create_task(handler(sleep_time))
                     await asyncio.sleep(sleep_time)
-                    return await self.execute(method, url, **kwargs)
+                    continue
                 # если чето сервер не ответил
                 if response.status_code in (502, 503, 504):
                     sleep_time = backoff ** attempt

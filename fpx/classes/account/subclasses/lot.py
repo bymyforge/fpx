@@ -59,10 +59,12 @@ class LotManager:
             data = self._account._parser.parse_current_lot_menu(html)
             stage = 'типизации данных'
             lot = CurrentLotInfo(
+                id=lot_id,
                 short_desc=data['short_desc'],
                 description=data['description'],
                 price=float(data['price'])
             )
+            lot._client = self._account
         except Exception as e:
             raise fpx_err.FpxGetLotInfoError(f'При выполнении {stage} произошла ошибка: {e}')
         return lot

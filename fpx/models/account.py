@@ -51,7 +51,7 @@ class CurReview:
             stars=self.stars
         )
         #добавить ещё ревью тайм
-        return await self._client._account.chat.send_message(self.order.chat_node_id, formatter_reply)
+        return await self._client._account.chat.send_message(self.order.chat_id, formatter_reply)
 
 @dataclass
 class UserData:
