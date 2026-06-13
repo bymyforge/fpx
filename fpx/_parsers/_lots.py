@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from fpx.utils import errors as fpx_err
 from ._base import BaseParser
 
-logger = logging.getLogger("fpx.profile_parser")
+logger = logging.getLogger("fpx.lot_parser")
 
 
 class LotParser(BaseParser):
@@ -91,7 +91,7 @@ class LotParser(BaseParser):
                 logger.debug(f'При парсинге конкретной выборки произошла ошибка: {e}')
         inputs = soup.find_all('input', class_='form-control')
         if not inputs:
-            inputs = [i for i in soup.find_all('input') if i.get('name') and i.get('type') if ['text', 'number', None] and i.get('type') != 'hidden']
+            inputs = [i for i in soup.find_all('input') if i.get('name') and i.get('type') in ['text', 'number', None] and i.get('type') != 'hidden']
         if not inputs:
             logger.debug('Ни одно поле для ввода в редакторе лотов не найдено. Возможно всё в порядке')
         else:

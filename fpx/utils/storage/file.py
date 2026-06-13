@@ -14,13 +14,15 @@ class FileStorage(BaseStorage):
                     self._states = json.load(f)
             except json.JSONDecodeError:
                 self._states = {}
+        self._lock = asyncio.Lock()
     
     def _write_file(self):
         with open(self.file_path, 'w', encoding='utf-8') as f:
             json.dump(self._states, f, ensure_ascii=False, indent=4)
     
     async def _save(self):
-        await asyncio.to_thread(self._write_file)
+        async with self._lock:
+            await asyncio.to_thread(self._write_file)
 
     async def set_state(self, chat_id: str | int, state: str | None):
         chat_id = str(chat_id)

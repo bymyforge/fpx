@@ -17,7 +17,7 @@ class CurrentLotInfo:
             raise fpx_err.FpxCriticalRunnerError('Объект CurrentLotInfo не привязан к клиенту fpx')
         return await self._client.editor.change_lot_price(self.id, new_price)
 
-    async def raise_lot(self):
+    async def raise_lots(self):
         '''Поднимает все лоты'''
         if not self._client:
             raise fpx_err.FpxCriticalRunnerError('Объект CurrentLotInfo не привязан к клиенту fpx')
@@ -56,7 +56,7 @@ class LotInfo:
             raise fpx_err.FpxCriticalRunnerError('Объект LotInfo не привязан к клиенту fpx')
         return await self._client.editor.change_lot_price(self.id, new_price)
 
-    async def raise_lot(self):
+    async def raise_lots(self):
         '''Поднимает все лоты'''
         if not self._client:
             raise fpx_err.FpxCriticalRunnerError('Объект LotInfo не привязан к клиенту fpx')

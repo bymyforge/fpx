@@ -43,7 +43,7 @@ class Router:
             sig = inspect.signature(h_func)
             kwargs = {}
             for param_name, param in sig.parameters.items():
-                if param.annotation == type(ev) or param_name in ('message', 'order', 'review', 'lot'):
+                if param.annotation == type(ev):
                     kwargs[param_name] = ev
                     continue
                 if state_ctx and param.annotation == FSMContext:
@@ -131,7 +131,7 @@ class Router:
                 - chat_id (str): Айди чата (node id)    
                 - last_msg (str): Сообщение, которое было отправлено в этом чате    
                 - is_system (bool): Системное ли сообщение      
-                - anwer (method): При указании текста в аргументах, отвечает на сообщение       
+                - answer (method): При указании текста в аргументах, отвечает на сообщение       
         '''
         def decorator(func):
             self._handlers['message'].append({
@@ -164,7 +164,7 @@ class Router:
                 - price (str): Цена товара     
                 - status (str): Статус заказа   
                 - name (str): Название товара   
-                - anwer (method): При указании текста в аргументах, отвечает на сообщение       
+                - answer (method): При указании текста в аргументах, отвечает на сообщение       
         '''
         mapping = [mapping] if isinstance(mapping, str) else mapping
         def decorator(func):
@@ -187,7 +187,7 @@ class Router:
                 - price (str): Цена товара     
                 - status (str): Статус заказа   
                 - name (str): Название товара   
-                - anwer (method): При указании текста в аргументах, отвечает на сообщение       
+                - answer (method): При указании текста в аргументах, отвечает на сообщение       
         '''
         mapping = [mapping] if isinstance(mapping, str) else mapping
         def decorator(func):
@@ -213,7 +213,7 @@ class Router:
                 - price (str): Цена товара     
                 - status (str): Статус заказа   
                 - name (str): Название товара   
-                - anwer (method): При указании текста в аргументах, отвечает на сообщение       
+                - answer (method): При указании текста в аргументах, отвечает на сообщение       
         '''
         mapping = [mapping] if isinstance(mapping, str) else mapping
         def decorator(func):
@@ -257,7 +257,7 @@ class Router:
                 - price (str): Цена товара     
                 - status (str): Статус заказа   
                 - name (str): Название товара   
-                - anwer (method): При указании текста в аргументах, отвечает на сообщение       
+                - answer (method): При указании текста в аргументах, отвечает на сообщение       
         '''
         mapping = [mapping] if isinstance(mapping, str) else mapping
         def decorator(func):

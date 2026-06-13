@@ -39,7 +39,7 @@ class CategoryRunner:
         self.runner._cache['old_chip_categories'] = self.runner._cache.get('chip_categories', [])
         self.runner._cache['chip_categories'] = new_cache
 
-    async def _compare_lot_category_cache(self):
+    def _compare_lot_category_cache(self):
         result = []
         old_cache = self.runner._cache.get('old_lot_categories', [])
         current_cache = self.runner._cache.get('lot_categories', [])
@@ -55,7 +55,7 @@ class CategoryRunner:
                 result.append(lot)
         return result
 
-    async def _compare_chip_category_cache(self):
+    def _compare_chip_category_cache(self):
         result = []
         old_cache = self.runner._cache.get('old_chip_categories', [])
         current_cache = self.runner._cache.get('chip_categories', [])
@@ -73,7 +73,7 @@ class CategoryRunner:
 
     async def _check_lot_categories(self, lot_category_ids):
         await self._update_lot_category_cache(lot_category_ids)
-        lots = await self._compare_lot_category_cache()
+        lots = self._compare_lot_category_cache()
         if lots:
             for lot in lots:
                 if lot.owner_username == self.runner._account.data.username:
@@ -83,7 +83,7 @@ class CategoryRunner:
 
     async def _check_chip_categories(self, chip_category_ids):
         await self._update_chip_category_cache(chip_category_ids)
-        lots = await self._compare_chip_category_cache()
+        lots = self._compare_chip_category_cache()
         if lots:
             for lot in lots:
                 if lot.owner_username == self.runner._account.data.username:

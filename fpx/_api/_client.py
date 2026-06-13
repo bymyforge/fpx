@@ -73,7 +73,7 @@ class FunPayClient:
         r = await self._account._request_engine.execute('GET', '/orders/trade')
         return r.text
 
-    async def refund_order(self, csrf_token, order_id):
+    async def refund_order(self, order_id):
         url = f'/orders/refund'
         payload = {
             'id': order_id

@@ -44,12 +44,10 @@ class OrderManager:
             FpxRefundError: Не удалось сделать возврат.  
         
         '''
-        if not self._account.data._csrf_token:
-            await self._account.profile.get_user_data()
-        response = await self._account._client.refund_order(self._account.data._csrf_token, order_id)
+        response = await self._account._client.refund_order(order_id)
         if response.status_code == 200:
             s = await self.get_order_details(order_id)
             status = s.status
-            if 'Возврат' in status:
+            if status in ('Возврат'):
                 return True
             raise fpx_err.FpxRefundError(f'Невозможно сделать возврат, текущий статус: {status}')

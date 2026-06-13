@@ -15,7 +15,7 @@ class OrderRunner:
         '''
         Обновляет кеш заказов в раннере
         '''
-        orders = await self.runner._account.profile.get_my_sells(25)
+        orders = await self.runner._account.profile.get_my_sells()
         result = []
         for order in orders:
             o = {
@@ -30,7 +30,7 @@ class OrderRunner:
         self.runner._cache['old_orders'] = self.runner._cache['orders']
         self.runner._cache['orders'] = result
 
-    async def _compare_order_cache(self):
+    def _compare_order_cache(self):
         '''
         Сравнивает старый и новый кеш заказов
         '''
@@ -104,12 +104,12 @@ class OrderRunner:
             order._client = self.runner
             await self._trigger_order_handlers(order)
         except Exception as e:
-            logger.debug(f'В процессе обработки заказа произошла ошибка: {e}. Убедитесь что всё хорошо')
+            logger.debug(f'В процессе обработки заказа произошла ошибка: {e}. Убедитесь что всё хорошо', exc_info=True)
             await self.runner._handle_error(event=order, exception=e)
 
     async def _check_orders(self):
-        await self.runner._order._update_order_cache()
-        orders = await self.runner._order._compare_order_cache()
+        await self._update_order_cache()
+        orders = self._compare_order_cache()
         if orders:
             tasks = [self._process_single_order(order) for order in orders]
             await asyncio.gather(*tasks)

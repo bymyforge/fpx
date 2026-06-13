@@ -36,6 +36,7 @@ class Runner:
     async def idle(self):
         """
         Зацикливает выполнение программы, чтобы фоновые задачи не закрылись.
+        Если не использовать, код не будет работать.
         """
         while True:
             await asyncio.sleep(3600)
@@ -103,7 +104,10 @@ class Runner:
             self._order._check_orders(),
             self._review._check_reviews()
         ])
-        await asyncio.gather(*tasks)
+        results = await asyncio.gather(*tasks)
+        for result in results:
+            if isinstance(result, Exception):
+                await self._handle_error(None, result)
 
     async def _handle_error(self, event: any, exception: Exception):
         '''Централизованная обработка любых ошибок.

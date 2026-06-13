@@ -91,4 +91,4 @@ class LotManager:
                 response.append(await self._account._client.raise_lot(node_id, game_id))
             return response
         except Exception as e:
-            raise fpx_err.FpxRaisingLotError(message=e)
+            raise fpx_err.FpxRaisingLotError(message=str(e))

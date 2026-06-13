@@ -5,7 +5,7 @@ from fpx.classes.runner.runner import Runner
 from fpx.fsm import MemoryStorage, BaseStorage, FileStorage, RedisStorage
 
 class FunPayTools:
-    def __init__(self, gkey, storage: BaseStorage | FileStorage | RedisStorage | None = None, proxy = None, http_client = None):
+    def __init__(self, gkey, storage: BaseStorage | None = None, proxy = None, http_client = None):
         self._cookies = {
             'golden_key': gkey,
             'locale': 'ru'
@@ -44,9 +44,3 @@ class FunPayTools:
 
     async def _close(self):
         await self._client.aclose()
-
-    async def __aenter__(self): 
-        return self
-
-    async def __aexit__(self, *exc): 
-        await self._close()

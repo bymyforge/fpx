@@ -13,7 +13,7 @@ class ChatRunner:
     def __init__(self, runner):
         self.runner = runner
 
-    async def _compare_chat_cache(self):
+    def _compare_chat_cache(self):
         '''
         Сравнивает старый кеш сообщений с новым, если находит отличия, выносит сообщение в список, после чего возвращает полный список
         '''
@@ -21,7 +21,7 @@ class ChatRunner:
         if self.runner._cache['msgs'] != self.runner._cache['old_msgs']:
             for message in self.runner._cache['msgs']:
                 if message not in self.runner._cache['old_msgs']:
-                    stop_words = ('оплатил заказ', 'можете перейти в discord', 'написал отзыв', 'изменил отзыв', 'вернул деньги', 'подтвердил успешное выполнение', 'удалил отзыв', 'оплатив замовлення', 'можете перейти в discord', 'написав відгук', 'змінив відгук', 'повернув гроші', 'підтвердив успішне виконання', 'видалив відгук', 'paid for the order', 'you can go to discord', 'left a review', 'changed the review', 'refunded money', 'confirmed successful completion', 'deleted the review')
+                    stop_words = ('оплатил заказ', 'можете перейти в discord', 'написал отзыв', 'изменил отзыв', 'вернул деньги', 'подтвердил успешное выполнение', 'удалил отзыв', 'оплатив замовлення', 'можете перейти в discord', 'написав відгук', 'змінив відгук', 'повернув гроші', 'підтвердив успішне виконання', 'видалив відгук', 'has paid for order', 'you can use Discord', 'given feedback', 'changed feedback', 'has refunded', 'has confirmed that', 'deleted thier feedback', 'replied to their')
                     msg_lower = message['last_msg'].lower()
                     if not any(word in msg_lower for word in stop_words):
                         result.append(Message(sender=message['sender'], chat_id=message['chat_id'], text=message['last_msg'], is_system=False))
@@ -33,13 +33,9 @@ class ChatRunner:
         '''
         chats = await self.runner._account.chat.get_chats()
         result = []
-        counter = 0
         for chat in chats:
-            if counter > 75:
-                break
             chat = {'sender': chat.username, 'chat_id': chat.id, 'last_msg': chat.last_msg}
             result.append(chat)
-            counter += 1
         self.runner._cache['old_msgs'] = self.runner._cache['msgs']
         self.runner._cache['msgs'] = result
 
@@ -69,14 +65,14 @@ class ChatRunner:
                 return True
         return False
 
-    async def _check_text_filter(self, msg_text, filter_text, mapping):
+    def _check_text_filter(self, msg_text, filter_text, mapping):
         if filter_text is None:
             return True
         if isinstance(filter_text, str) and msg_text.startswith(filter_text.lower()):
             return True
         return False
 
-    async def _check_contains_filter(self, msg_text, h_filter):
+    def _check_contains_filter(self, msg_text, h_filter):
         if isinstance(h_filter, str):
             h_filter = [h_filter]
         if h_filter is not None:
@@ -86,7 +82,7 @@ class ChatRunner:
             return False
         return True
 
-    async def _check_regex(self, msg_text, h_regex):
+    def _check_regex(self, msg_text, h_regex):
         if isinstance(h_regex, str):
             h_regex = [h_regex]
         if h_regex is not None:
@@ -96,7 +92,7 @@ class ChatRunner:
             return False
         return True
 
-    async def _chat_id_check(self, msg: Message, h_chat_id):
+    def _chat_id_check(self, msg: Message, h_chat_id):
         if isinstance(h_chat_id, str | int):
             h_chat_id = [h_chat_id]
         if h_chat_id is not None:
@@ -106,7 +102,7 @@ class ChatRunner:
             return True
         return True
 
-    async def _sender_check(self, msg: Message, h_sender):
+    def _sender_check(self, msg: Message, h_sender):
         if isinstance(h_sender, str | int):
             h_sender = [h_sender]
         if h_sender is not None:
@@ -129,11 +125,11 @@ class ChatRunner:
 
     async def _check_filters(self, message: Message, handler):
         msg_text = message.text.lower()
-        if await self._check_text_filter(msg_text, handler['filter_text'], handler['mapping']):
-            if await self._check_contains_filter(msg_text, handler['contains']):
-                if await self._check_regex(msg_text, handler['regex']):
-                    if await self._chat_id_check(message, handler['ignore_chat_id']):
-                        if await self._sender_check(message, handler['ignore_sender']):
+        if self._check_text_filter(msg_text, handler['filter_text'], handler['mapping']):
+            if self._check_contains_filter(msg_text, handler['contains']):
+                if self._check_regex(msg_text, handler['regex']):
+                    if self._chat_id_check(message, handler['ignore_chat_id']):
+                        if self._sender_check(message, handler['ignore_sender']):
                             if await self._custom_check(message, handler['custom']):
                                 return True
         return False
@@ -176,8 +172,8 @@ class ChatRunner:
             break
             
     async def _check_chats(self):
-        await self.runner._chat._update_chat_cache()
-        chats = await self.runner._chat._compare_chat_cache()
+        await self._update_chat_cache()
+        chats = self._compare_chat_cache()
         if chats:
             async def process_single_chat(chat_cache_obj):
                 chat_msg = None

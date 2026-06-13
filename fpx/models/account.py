@@ -29,7 +29,7 @@ class CurReview:
     async def answer(self, answer_text: str) -> bool:
         '''Ответить на отзыв'''
         if not self._client:
-            raise fpx_err.FpxCriticalRunnerError('Объект CurReview не привязан к клиенту fpx')
+            raise fpx_err.FpxClientNotAttachedError('Объект CurReview не привязан к клиенту fpx')
         formatted_reply = answer_text.format(
             author=self.author,
             order_id=self.order_id,
@@ -42,8 +42,8 @@ class CurReview:
     async def message_author(self, message_text: str) -> bool:
         '''Ответить на отзыв в чате'''
         if not self._client:
-            raise fpx_err.FpxCriticalRunnerError('Объект CurReview не привязан к клиенту fpx')
-        formatter_reply = message_text.format(
+            raise fpx_err.FpxClientNotAttachedError('Объект CurReview не привязан к клиенту fpx')
+        formatted_reply = message_text.format(
             author=self.author,
             order_id=self.order_id,
             order_name=self.order.name,
@@ -51,7 +51,7 @@ class CurReview:
             stars=self.stars
         )
         #добавить ещё ревью тайм
-        return await self._client._account.chat.send_message(self.order.chat_id, formatter_reply)
+        return await self._client._account.chat.send_message(self.order.chat_id, formatted_reply)
 
 @dataclass
 class UserData:

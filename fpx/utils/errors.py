@@ -24,7 +24,7 @@ class FpxRunnerError(FpxError):
 
 class FpxHandlerError(FpxError):
     """Ошибки хендлера."""
-    def __init__(self, message='Ошибка раннера'):
+    def __init__(self, message='Ошибка хендлера'):
         super().__init__(message)
 
 # Третий уровень, конкретные ошибки
@@ -107,13 +107,13 @@ class FpxGetUserDataError(FpxAccountError):
         super().__init__(message)
 
 class FpxGetUserSellsError(FpxAccountError):
-    '''Ошибка запроса данных юзера'''
-    def __init__(self, message='Ошибка запроса данных юзера'):
+    '''Ошибка запроса данных продаж юзера'''
+    def __init__(self, message='Ошибка запроса данных продаж юзера'):
         super().__init__(message)
 
 class FpxGetProfileError(FpxAccountError):
-    '''Ошибка запроса данных юзера'''
-    def __init__(self, message='Ошибка запроса данных юзера'):
+    '''Ошибка запроса данных профиля юзера'''
+    def __init__(self, message='Ошибка запроса данных профиля юзера'):
         super().__init__(message)
 
 # --- Ошибки парсера ---
