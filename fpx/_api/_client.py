@@ -17,20 +17,20 @@ class FunPayClient:
 
     async def send_message_request(self, node_name, last_msg, text):
         request_data = {
-        "action": "chat_message",
-        "data": {
-            "node": node_name,
-            "last_message": last_msg,
-            "content": text
+            "action": "chat_message",
+            "data": {
+                "node": node_name,
+                "last_message": last_msg,
+                "content": text
+            }
         }
-    }
         payload = {
             'request': json.dumps(request_data)
         }
         headers = {
-        "X-Requested-With": "XMLHttpRequest",
-        "Referer": f"https://funpay.com/chat/?node={node_name.split('-')[-1]}"
-    }
+            "X-Requested-With": "XMLHttpRequest",
+            "Referer": f"https://funpay.com/chat/?node={node_name.split('-')[-1]}"
+        }
         r = await self._account._request_engine.execute('POST', '/runner/', data=payload, headers=headers)
         return r.json()
 

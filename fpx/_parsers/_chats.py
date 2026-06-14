@@ -45,58 +45,58 @@ class ChatParser(BaseParser):
 
     @classmethod
     def parse_chat(cls, html_content: str):
-            ''' Парсит страницу https://funpay.com/chat/?node=...'''
-            soup = BeautifulSoup(html_content, 'html.parser')
-            result = {}
-            chat_div = soup.find('div', class_='chat')
-            if not chat_div:
-                chat_div = soup.find('div', attrs={'data-id': re.compile(r'^\d+$')})
-            body = soup.find('body')
-            if not chat_div or not body:
-                raise fpx_err.FpxNullDataError('На странице чата не найден блок переписки или тег body')
-            chats = soup.find_all('div', class_='chat-msg-item')
-            if chats:
-                try:
-                    chat = chats[-1]
-                    res = {'is_system': False}
-                    msg_tag = chat.find('div', class_='chat-msg-text')
-                    res['message'] = msg_tag.get_text(separator='\n').strip() if msg_tag else ''
-                    if not res['message']:
-                        res['message'] = msg_tag.find('a', class_='chat-img-link').get('href') or ''
-                    author_block = None
-                    current_node = chat
-                    while current_node:
-                        author_block = current_node.find('div', class_='media-user-name')
-                        if author_block:
-                            break
-                        current_node = current_node.find_previous_sibling('div', class_='chat-msg-item')
-                    if author_block:
-                        author = author_block.find('a', class_='chat-msg-author-link')
-                        if not author:
-                            sender_lbl = author_block.find('span', class_='chat-msg-author-label')
-                            res['sender'] = cls.clean_text(sender_lbl) if sender_lbl else "FunPay"
-                            if res['sender'] and res['sender'].lower() == 'оповещение':
-                                res['sender'] = 'FunPay'
-                                res['is_system'] = True
-                        else:
-                            res['sender'] = author.get_text(strip=True)
-                    else:
-                        res['sender'] = "Unknown"
-                    result['last_message'] = res
-                except Exception as e:
-                    logger.debug(f"Не удалось распарсить последнее сообщение в чате: {e}")
-                    result['last_message'] = None
-            else:
-                logger.debug('Последнее сообщение не найдено!')
-                result['last_message'] = None
-            # парсинг тех.данных
+        ''' Парсит страницу https://funpay.com/chat/?node=...'''
+        soup = BeautifulSoup(html_content, 'html.parser')
+        result = {}
+        chat_div = soup.find('div', class_='chat')
+        if not chat_div:
+            chat_div = soup.find('div', attrs={'data-id': re.compile(r'^\d+$')})
+        body = soup.find('body')
+        if not chat_div or not body:
+            raise fpx_err.FpxNullDataError('На странице чата не найден блок переписки или тег body')
+        chats = soup.find_all('div', class_='chat-msg-item')
+        if chats:
             try:
-                result['data-name'] = chat_div.get('data-name', '')
-                app_data_str = body.get('data-app-data', '{}')
-                app_data = json.loads(app_data_str)
-                result['csrf-token'] = app_data.get('csrf-token', '')
-                result['user-id'] = app_data.get('userId', '')
+                chat = chats[-1]
+                res = {'is_system': False}
+                msg_tag = chat.find('div', class_='chat-msg-text')
+                res['message'] = msg_tag.get_text(separator='\n').strip() if msg_tag else ''
+                if not res['message']:
+                    res['message'] = msg_tag.find('a', class_='chat-img-link').get('href') or ''
+                author_block = None
+                current_node = chat
+                while current_node:
+                    author_block = current_node.find('div', class_='media-user-name')
+                    if author_block:
+                        break
+                    current_node = current_node.find_previous_sibling('div', class_='chat-msg-item')
+                if author_block:
+                    author = author_block.find('a', class_='chat-msg-author-link')
+                    if not author:
+                        sender_lbl = author_block.find('span', class_='chat-msg-author-label')
+                        res['sender'] = cls.clean_text(sender_lbl) if sender_lbl else "FunPay"
+                        if res['sender'] and res['sender'].lower() == 'оповещение':
+                            res['sender'] = 'FunPay'
+                            res['is_system'] = True
+                    else:
+                        res['sender'] = author.get_text(strip=True)
+                else:
+                    res['sender'] = "Unknown"
+                result['last_message'] = res
             except Exception as e:
-                logger.debug(f"Ошибка извлечения системных данных чата: {e}")
-                raise fpx_err.FpxParseError("Не удалось распарсить системные метаданные чата (CSRF/User ID)")
-            return result
+                logger.debug(f"Не удалось распарсить последнее сообщение в чате: {e}")
+                result['last_message'] = None
+        else:
+            logger.debug('Последнее сообщение не найдено!')
+            result['last_message'] = None
+            # парсинг тех.данных
+        try:
+            result['data-name'] = chat_div.get('data-name', '')
+            app_data_str = body.get('data-app-data', '{}')
+            app_data = json.loads(app_data_str)
+            result['csrf-token'] = app_data.get('csrf-token', '')
+            result['user-id'] = app_data.get('userId', '')
+        except Exception as e:
+            logger.debug(f"Ошибка извлечения системных данных чата: {e}")
+            raise fpx_err.FpxParseError("Не удалось распарсить системные метаданные чата (CSRF/User ID)")
+        return result

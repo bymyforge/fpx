@@ -21,7 +21,7 @@ class ChatRunner:
         if self.runner._cache['msgs'] != self.runner._cache['old_msgs']:
             for message in self.runner._cache['msgs']:
                 if message not in self.runner._cache['old_msgs']:
-                    stop_words = ('оплатил заказ', 'можете перейти в discord', 'написал отзыв', 'изменил отзыв', 'вернул деньги', 'подтвердил успешное выполнение', 'удалил отзыв', 'оплатив замовлення', 'можете перейти в discord', 'написав відгук', 'змінив відгук', 'повернув гроші', 'підтвердив успішне виконання', 'видалив відгук', 'has paid for order', 'you can use Discord', 'given feedback', 'changed feedback', 'has refunded', 'has confirmed that', 'deleted thier feedback', 'replied to their')
+                    stop_words = ('оплатил заказ', 'можете перейти в discord', 'написал отзыв', 'изменил отзыв', 'вернул деньги', 'подтвердил успешное выполнение', 'удалил отзыв', 'оплатив замовлення', 'написав відгук', 'змінив відгук', 'повернув гроші', 'підтвердив успішне виконання', 'видалив відгук', 'has paid for order', 'you can use Discord', 'given feedback', 'changed feedback', 'has refunded', 'has confirmed that', 'deleted their feedback', 'replied to their')
                     msg_lower = message['last_msg'].lower()
                     if not any(word in msg_lower for word in stop_words):
                         result.append(Message(sender=message['sender'], chat_id=message['chat_id'], text=message['last_msg'], is_system=False))
@@ -61,7 +61,7 @@ class ChatRunner:
                 if len(args) < len(text_param_names):
                     missing_param = text_param_names[len(args)]
                     raise fpx_err.FpxCommandArgsError(target_function.__name__, missing_param)
-                await self.runner.router.invoke(target_function, message, state_ctx)
+                await self.runner.router.invoke(target_function, message, state_ctx, args=args)
                 return True
         return False
 
@@ -125,14 +125,19 @@ class ChatRunner:
 
     async def _check_filters(self, message: Message, handler):
         msg_text = message.text.lower()
-        if self._check_text_filter(msg_text, handler['filter_text'], handler['mapping']):
-            if self._check_contains_filter(msg_text, handler['contains']):
-                if self._check_regex(msg_text, handler['regex']):
-                    if self._chat_id_check(message, handler['ignore_chat_id']):
-                        if self._sender_check(message, handler['ignore_sender']):
-                            if await self._custom_check(message, handler['custom']):
-                                return True
-        return False
+        if not self._check_text_filter(msg_text, handler['filter_text'], handler['mapping']):
+            return False
+        if not self._check_contains_filter(msg_text, handler['contains']):
+            return False
+        if not self._check_regex(msg_text, handler['regex']):
+            return False
+        if not self._chat_id_check(message, handler['ignore_chat_id']):
+            return False
+        if not self._sender_check(message, handler['ignore_sender']):
+            return False
+        if not await self._custom_check(message, handler['custom']):
+            return False
+        return True
 
     async def _trigger_message_handlers(self, message):
         if self.runner._account.data.username is None:

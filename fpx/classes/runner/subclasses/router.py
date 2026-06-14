@@ -1,4 +1,4 @@
-from __future__ import annotations
+
 import inspect
 import asyncio
 
@@ -37,11 +37,12 @@ class Router:
             return func
         return decorator
 
-    async def invoke(self, h_func, event, state_ctx=None):
+    async def invoke(self, h_func, event, state_ctx=None, args=None):
         '''Вызывает хендлер'''
         async def endpoint(ev):
             sig = inspect.signature(h_func)
             kwargs = {}
+            arg_index = 0
             for param_name, param in sig.parameters.items():
                 if param.annotation == type(ev):
                     kwargs[param_name] = ev
@@ -55,6 +56,10 @@ class Router:
                         kwargs[param_name] = await dep_func(ev)
                     else:
                         kwargs[param_name] = dep_func(ev)
+                if args and param.default is inspect.Parameter.empty:
+                    if arg_index < len(args):
+                        kwargs[param_name] = args[arg_index]
+                        arg_index += 1
             await h_func(**kwargs)
         call_next = endpoint
         for mw in reversed(self._middlewares):
@@ -129,7 +134,7 @@ class Router:
             Message: Объект, содержащий:    
                 - sender (str): Имя отправителя     
                 - chat_id (str): Айди чата (node id)    
-                - last_msg (str): Сообщение, которое было отправлено в этом чате    
+                - text (str): Сообщение, которое было отправлено в этом чате    
                 - is_system (bool): Системное ли сообщение      
                 - answer (method): При указании текста в аргументах, отвечает на сообщение       
         '''
