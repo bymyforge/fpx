@@ -22,13 +22,6 @@ class Chat:
     is_unread: bool
 
 @dataclass
-class ChatData:
-    node_name: str
-    csrf_token: str
-    user_id: str
-    last_message: Optional[Message]
-
-@dataclass
 class Message:
     sender: str
     chat_id: str
@@ -46,3 +39,10 @@ class Message:
                             text=self.text
                         )
         return await self._client._account.chat.send_message(self.chat_id, formatted_reply)
+
+@dataclass
+class ChatData:
+    node_name: str
+    csrf_token: str
+    user_id: str
+    last_message: Optional[Message]
