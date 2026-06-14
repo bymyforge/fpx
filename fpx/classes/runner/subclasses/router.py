@@ -70,7 +70,7 @@ class Router:
             call_next = await make_next()
         await call_next(event)
 
-    def include_router(self, router: Router):
+    def include_router(self, router):
         '''Метод для подключения плагинов и сторонних роутеров'''
         for event_type, funcs in router._handlers.items():
             if event_type in self._handlers:
