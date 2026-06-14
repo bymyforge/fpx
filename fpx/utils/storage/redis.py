@@ -4,6 +4,12 @@ from .base import BaseStorage
 
 
 class RedisStorage(BaseStorage):
+    '''
+    Хранилище FSM на редис
+    Внимание. при конкурентном доступе к одному chat_id
+    возможна потеря данных (race condition).
+    Для высоких нагрузок используйте Redis Lua-скрипты.
+    '''
     def __init__(self, url: str = "redis://localhost:6379", prefix: str = 'fpx'):
         try:
             from redis.asyncio import Redis
@@ -29,6 +35,12 @@ class RedisStorage(BaseStorage):
         return json.loads(raw).get("state")
 
     async def update_data(self, chat_id: str | int, **kwargs):
+        """Обновляет данные для чата.
+
+        Warning: НЕ потокобезопасно. Если два хендлера
+        одновременно пишут данные в один чат, одно из
+        изменений может пропасть, не критично на слабых оборотах.
+        """
         key = self._key(str(chat_id))
         current = await self.get_data(chat_id)
         current.update(kwargs)

@@ -31,6 +31,12 @@ class FpxHandlerError(FpxError):
 
 
 # аккаунт
+
+class FpxAuthError(FpxAccountError):
+    '''Неверный gkey'''
+    def __init__(self, message='Передан неверный gkey.'):
+        super().__init__(message)
+
 class FpxGetChatsError(FpxAccountError):
     """Не удалось запросить чаты."""
     def __init__(self, message='Не удалось запросить чаты.'):

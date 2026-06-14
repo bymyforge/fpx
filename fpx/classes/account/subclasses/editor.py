@@ -20,7 +20,6 @@ class FunPayEditor:
             FpxLotEditingError: Цена не изменилась 
             FpxRequestError: Плохое соединение с интернетом/сервер не ответил
         '''
-        await self._account.profile.get_user_data()
         lot = await self._account.lot._get_lot_editor_details(lot_id)
         lot.fields['price'] = new_price
         response = await self._account._client.edit_lot(lot, active=True)

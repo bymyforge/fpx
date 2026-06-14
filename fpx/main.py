@@ -15,6 +15,8 @@ class FunPayTools:
             "Accept-Language": "ru-RU,ru;q=0.9"
         }
         mounts = {}
+        if http_client and proxy:
+            raise ValueError('Нельзя передавать proxy и http_client вместе. В этом нет смысла, передавайте прокси внутри клиента')
         if proxy:
             mounts = {
                 "http://": httpx.AsyncHTTPTransport(proxy=proxy),

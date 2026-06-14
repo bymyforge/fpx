@@ -67,7 +67,8 @@ class Runner:
             watch_chips (list): Можно не передавать. Список категорий чипсов(коротких лотов под валюты), которые будет проверять скрипт.
         '''
         if is_background:
-            asyncio.create_task(self._run_loop(timer, watch_lots, watch_chips))
+            task = asyncio.create_task(self._run_loop(timer, watch_lots, watch_chips))
+            return task
         else:
             await self._run_loop(timer, watch_lots, watch_chips)
 
