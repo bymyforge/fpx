@@ -16,7 +16,7 @@ async def main():
     # ─── Сообщения ───
     @fp.router.on_message()
     async def chat_handler(message: Message):
-        print(f"[MSG] {message.sender}: {message.last_msg}")
+        print(f"[MSG] {message.sender}: {message.text}")
         if message.is_system:
             return
         await message.answer("Сообщение получено, скоро отвечу!")
@@ -42,8 +42,8 @@ async def main():
 
     # ─── Ошибки ───
     @fp.router.on_error()
-    async def error_handler(error):
-        print(f"[ERROR] Произошла ошибка: {error}")
+    async def error_handler(event, exception):
+        print(f"[ERROR] Произошла ошибка: {exception}")
 
     # ─── Запуск ───
     await fp.runner.start_polling(

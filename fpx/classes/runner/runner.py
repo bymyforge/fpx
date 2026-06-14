@@ -46,11 +46,11 @@ class Runner:
             try:
                 await self._cache_runner(watch_lots, watch_chips)
                 await asyncio.sleep(timer)
+            except fpx_err.FpxRequestError:
+                await asyncio.sleep(60)
             except fpx_err.FpxAccountError as e:
                 await asyncio.sleep(5)
                 continue
-            except fpx_err.FpxRequestError:
-                await asyncio.sleep(60)
             except (httpx.HTTPError, httpx.NetworkError):
                 await asyncio.sleep(timer)
             except Exception as e:
@@ -75,19 +75,30 @@ class Runner:
         '''Прогрев кеша'''
         await self._account.profile.get_user_data()
         tasks = []
-        if watch_lots:
+        if watch_lots is not None:
             tasks.append(self._category._check_lot_categories(watch_lots))
-        if watch_chips:
+        if watch_chips is not None:
             tasks.append(self._category._check_chip_categories(watch_chips))
         tasks.extend([
             self._chat._update_chat_cache(),
             self._order._update_order_cache(),
             self._review._update_review_cache()
         ])
-        await asyncio.gather(*tasks, return_exceptions=True)
-        self._cache_is_updated = True
-        for handler in self.router._handlers['startup']:
-            asyncio.create_task(handler())
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        is_good = True
+        for result in results:
+            if isinstance(result, Exception):
+                await self._handle_error(None, result)
+                is_good = False
+        if is_good:
+            self._cache_is_updated = True
+            for handler in self.router._handlers['startup']:
+                try:
+                    await handler()
+                except Exception as e:
+                    await self._handle_error(None, e)
+        else:
+            self._cache_is_updated = False
 
     async def _cache_runner(self, watch_lots, watch_chips):
         '''Управляет кешем'''
@@ -95,16 +106,16 @@ class Runner:
             await self._warm_up(watch_lots, watch_chips)
             return
         tasks = []
-        if watch_lots:
+        if watch_lots is not None:
             tasks.append(self._category._check_lot_categories(watch_lots))
-        if watch_chips:
+        if watch_chips is not None:
             tasks.append(self._category._check_chip_categories(watch_chips))
         tasks.extend([
             self._chat._check_chats(),
             self._order._check_orders(),
             self._review._check_reviews()
         ])
-        results = await asyncio.gather(*tasks)
+        results = await asyncio.gather(*tasks, return_exceptions=True)
         for result in results:
             if isinstance(result, Exception):
                 await self._handle_error(None, result)
@@ -115,7 +126,7 @@ class Runner:
         '''
         error_handlers = self.router._handlers.get('error', [])
         for handler in error_handlers:
-            if error_handler:
+            if handler:
                 if asyncio.iscoroutinefunction(error_handler):
                     await error_handler(event, exception)
                 else:

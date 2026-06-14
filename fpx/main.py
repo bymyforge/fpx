@@ -42,5 +42,9 @@ class FunPayTools:
         self.storage = storage or MemoryStorage()
         self.runner.storage = self.storage
 
-    async def _close(self):
-        await self._client.aclose()
+    async def __aenter__(self):
+        return self
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self._client:
+            await self._client.aclose()

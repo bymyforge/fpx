@@ -48,6 +48,6 @@ class OrderManager:
         if response.status_code == 200:
             s = await self.get_order_details(order_id)
             status = s.status
-            if status in ('Возврат'):
+            if status == 'Возврат':
                 return True
             raise fpx_err.FpxRefundError(f'Невозможно сделать возврат, текущий статус: {status}')

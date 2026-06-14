@@ -30,6 +30,8 @@ class CurReview:
         '''Ответить на отзыв'''
         if not self._client:
             raise fpx_err.FpxClientNotAttachedError('Объект CurReview не привязан к клиенту fpx')
+        if not self.order:
+            raise fpx_err.FpxAttributeError('В объект не передан аттрибут Order')
         formatted_reply = answer_text.format(
             author=self.author,
             order_id=self.order_id,
@@ -43,6 +45,8 @@ class CurReview:
         '''Ответить на отзыв в чате'''
         if not self._client:
             raise fpx_err.FpxClientNotAttachedError('Объект CurReview не привязан к клиенту fpx')
+        if not self.order:
+            raise fpx_err.FpxAttributeError('В объект не передан аттрибут Order')
         formatted_reply = message_text.format(
             author=self.author,
             order_id=self.order_id,
