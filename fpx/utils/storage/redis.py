@@ -12,7 +12,7 @@ class RedisStorage(BaseStorage):
     '''
     def __init__(self, url: str = "redis://localhost:6379", prefix: str = 'fpx'):
         try:
-            from redis.asyncio import Redis
+            from redis.asyncio import Redis  # type: ignore[import-untyped]
         except ImportError:
             raise ImportError(
                 "Redis не установлен. Установи: pip install fpx-engine[redis]"
@@ -27,7 +27,7 @@ class RedisStorage(BaseStorage):
         key = self._key(str(chat_id))
         data = await self.get_data(chat_id)
         await self._redis.set(key, json.dumps({'state': state, 'data': data}))
-    
+
     async def get_state(self, chat_id: str | int) -> str | None:
         raw = await self._redis.get(self._key(str(chat_id)))
         if not raw:

@@ -1,7 +1,9 @@
-import httpx
 import asyncio
 
+import httpx
+
 from fpx.utils import errors as fpx_err
+
 
 class RequestEngine:
     def __init__(self, account, client: httpx.AsyncClient):
@@ -29,7 +31,7 @@ class RequestEngine:
                 # флуд контрль
                 if response.status_code == 429:
                     if attempt == attempts - 1:
-                        raise fpx_err.FpxRequestError(message=f"Превышено количество попыток запроса (Flood/429) к {url}")
+                        raise fpx_err.FpxRequestError(message=f"Превышено кол-во попыток запроса (Flood/429) к {url}")
                     try:
                         sleep_time = int(response.headers.get('Retry-After', 5))
                     except (ValueError, TypeError):
@@ -41,17 +43,22 @@ class RequestEngine:
                     continue
                 # если чето сервер не ответил
                 if response.status_code in (502, 503, 504):
-                    sleep_time = backoff ** attempt
+                    sleep_time = backoff ** float(attempt)
                     await asyncio.sleep(sleep_time)
                     continue
                 return response
             except httpx.ReadTimeout as e:
                 if method.upper() == 'GET':
-                    if attempt == attempts - 1: raise e
+                    if attempt == attempts - 1:
+                        raise e
                     await asyncio.sleep(backoff ** attempt)
                 else:
-                    raise fpx_err.FpxRequestError(message=f'POST запрос упал по таймауту ответа. Возможно действие выполнилось: {e}')
+                    raise fpx_err.FpxRequestError(
+                        message=f'POST запрос упал по таймауту ответа'
+                        f'Возможно действие выполнилось: {e}'
+                    )
             except (httpx.ConnectTimeout, httpx.ConnectError) as e:
-                if attempt == attempts - 1: raise e
+                if attempt == attempts - 1:
+                    raise e
                 await asyncio.sleep(backoff ** attempt)
         raise fpx_err.FpxRequestError(message=f"Превышено количество попыток запроса к {url}")

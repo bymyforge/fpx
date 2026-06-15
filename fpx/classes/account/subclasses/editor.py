@@ -17,7 +17,7 @@ class FunPayEditor:
         Returns:
             bool: True - цена изменилась.
         Raises:
-            FpxLotEditingError: Цена не изменилась 
+            FpxLotEditingError: Цена не изменилась
             FpxRequestError: Плохое соединение с интернетом/сервер не ответил
         '''
         lot = await self._account.lot._get_lot_editor_details(lot_id)

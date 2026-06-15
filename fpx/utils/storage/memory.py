@@ -16,7 +16,7 @@ class MemoryStorage(BaseStorage):
 
     async def get_state(self, chat_id: str | int) -> str | None:
         return self._states.get(str(chat_id), {}).get('state')
-    
+
     async def update_data(self, chat_id: str | int, **kwargs) -> None:
         chat_id = str(chat_id)
         self._init_chat(chat_id)

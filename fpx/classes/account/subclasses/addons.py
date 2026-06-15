@@ -12,8 +12,8 @@ class AddonsManager:
 
         Args:
             category_id (str | int): ID подкатегории.
-                
-        Returns:    
+
+        Returns:
             str | int: ID игры.
 
         Raises:

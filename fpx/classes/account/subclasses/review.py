@@ -15,10 +15,10 @@ class ReviewManager:
         Args:
             order_id (str | int): Айди заказа.
         Returns:
-            Review: Объект с данными отзыва:  
-                - text (str): Текст отзыва. 
-                - stars (int): Количество звёзд в отзыве.   
-                - answer (str): Ваш ответ на отзыв, может быть пустой строкой.  
+            Review: Объект с данными отзыва:
+                - text (str): Текст отзыва.
+                - stars (int): Количество звёзд в отзыве.
+                - answer (str): Ваш ответ на отзыв, может быть пустой строкой.
         '''
         r = await self._account.order.get_order_details(order_id)
         rev = r.review
@@ -28,10 +28,10 @@ class ReviewManager:
     async def review_answer(self, order_id, text):
         '''
         Отвечает на отзыв, оставленный покупателем.
-        
+
         Args:
-            order_id (str | int): ID заказа, на отзыв которого хотите ответить,  
-            text (str): Текст, которым вы хотите ответить на отзыв.  
+            order_id (str | int): ID заказа, на отзыв которого хотите ответить,
+            text (str): Текст, которым вы хотите ответить на отзыв.
         Returns:
             bool: True при успехе
         Raises:
@@ -48,5 +48,5 @@ class ReviewManager:
             if text in response['content']:
                 return True
             raise fpx_err.FpxAnswerReviewError(message='Ответ не сохранился')
-        except Exception as e:
+        except Exception:
             raise fpx_err.FpxAnswerReviewError(message=response.get('msg') if response.get('msg') else response)

@@ -1,9 +1,8 @@
-import inspect
 import asyncio
 import logging
 
-from fpx.models.account import Order
 from fpx.fsm import FSMContext
+from fpx.models.account import Order
 
 logger = logging.getLogger("fpx.order_runner")
 
@@ -56,7 +55,7 @@ class OrderRunner:
         await self.runner.router.invoke(h_func, order, state_ctx)
         return True
 
-    async def _check_trigger_for_command(self, order: Order, state_ctx: FSMContext):
+    async def _check_trigger_for_command(self, order: Order, state_ctx: FSMContext | None):
         if order.description is None:
             return False
         for cmd_handler in self.runner.router._handlers['order_command']:
@@ -67,7 +66,7 @@ class OrderRunner:
                 if command_name in order.description.lower():
                     target_function = target_command_lower[command_name]
                     order.finded_mapping = command_name
-                    break 
+                    break
             if target_function is None:
                 continue
             await self.runner.router.invoke(target_function, order, state_ctx)
@@ -75,26 +74,25 @@ class OrderRunner:
         return False
 
     async def _trigger_order_handlers(self, order: Order):
-        state_ctx = FSMContext(self.runner.storage, order.chat_id)
-        status = order.status.lower()
-        matched = False
+        state_ctx = FSMContext(self.runner.storage, order.chat_id) if order.chat_id else None
+        status = order.status.lower() if order.status else order.status
         for handler in self.runner.router._handlers['order']:
             if await self._check_handler(handler, order, state_ctx):
-                matched = True
+                pass
         if status in ('закрыт', 'closed', 'закрито'):
             for handler in self.runner.router._handlers['confirmed_order']:
                 if await self._check_handler(handler, order, state_ctx):
-                    matched = True
+                    pass
         elif status in ('оплачен', 'оплачено', 'paid', 'відкрито'):
             for handler in self.runner.router._handlers['new_order']:
                 if await self._check_handler(handler, order, state_ctx):
-                    matched = True
+                    pass
             if await self._check_trigger_for_command(order, state_ctx):
-                matched = True
+                pass
         elif status in ('возврат', 'повернення', 'refund'):
             for handler in self.runner.router._handlers['refund']:
                 if await self._check_handler(handler, order, state_ctx):
-                    matched = True
+                    pass
 
     async def _process_single_order(self, order: Order):
         try:

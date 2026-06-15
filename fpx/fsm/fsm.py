@@ -1,10 +1,11 @@
 from fpx.utils.storage.base import BaseStorage
 
+
 class FSMContext:
     def __init__(self, storage: BaseStorage, chat_id: str | int):
         self.storage = storage
         self.chat_id = str(chat_id)
-    
+
     async def set_state(self, state: str | None):
         await self.storage.set_state(self.chat_id, state)
 

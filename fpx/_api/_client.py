@@ -1,5 +1,4 @@
 import json
-import urllib.parse
 
 
 class FunPayClient:
@@ -64,7 +63,7 @@ class FunPayClient:
             return response.get('msg')
         else:
             return {"error": "not_json", "status": r.status_code}
-            
+
     async def get_lot_info(self, lot_id):
         r = await self._account._request_engine.execute('GET', f'/lots/offer?id={lot_id}')
         return r.text
@@ -74,7 +73,7 @@ class FunPayClient:
         return r.text
 
     async def refund_order(self, order_id):
-        url = f'/orders/refund'
+        url = '/orders/refund'
         payload = {
             'id': order_id
         }
@@ -128,7 +127,7 @@ class FunPayClient:
     async def get_chip_category(self, chip_category_id):
         r = await self._account._request_engine.execute('GET', f'/chips/{chip_category_id}/')
         return r.text
-    
+
     async def get_lot_category(self, lot_category_id):
         r = await self._account._request_engine.execute('GET', f'/lots/{lot_category_id}/')
         return r.text

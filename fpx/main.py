@@ -2,7 +2,8 @@ import httpx
 
 from fpx.classes.account.account import Account
 from fpx.classes.runner.runner import Runner
-from fpx.fsm import MemoryStorage, BaseStorage, FileStorage, RedisStorage
+from fpx.fsm import BaseStorage, MemoryStorage
+
 
 class FunPayTools:
     def __init__(self, gkey, storage: BaseStorage | None = None, proxy = None, http_client = None):
@@ -16,7 +17,10 @@ class FunPayTools:
         }
         mounts = {}
         if http_client and proxy:
-            raise ValueError('Нельзя передавать proxy и http_client вместе. В этом нет смысла, передавайте прокси внутри клиента')
+            raise ValueError(
+                'Нельзя передавать proxy и http_client вместе.'
+                'В этом нет смысла, передавайте прокси внутри клиента'
+            )
         if proxy:
             mounts = {
                 "http://": httpx.AsyncHTTPTransport(proxy=proxy),
@@ -46,7 +50,7 @@ class FunPayTools:
 
     async def __aenter__(self):
         return self
-    
+
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         if self._client:
             await self._client.aclose()

@@ -3,6 +3,7 @@ from ._lots import LotParser
 from ._orders import OrderParser
 from ._profile import ProfileParser
 
+
 class FpxParser(ChatParser, LotParser, OrderParser, ProfileParser):
     '''
     Главный парсер fpx

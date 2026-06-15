@@ -3,6 +3,7 @@ from typing import Any, Optional
 
 from fpx.utils import errors as fpx_err
 
+
 @dataclass
 class Chat:
     '''
@@ -24,7 +25,7 @@ class Chat:
 @dataclass
 class Message:
     sender: str
-    chat_id: str
+    chat_id: str | int
     text: str
     is_system: bool
     _client: Any = field(init=False, repr=False, default=None)

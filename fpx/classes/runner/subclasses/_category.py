@@ -1,7 +1,5 @@
 import asyncio
-import inspect
 
-from fpx.models.lots import CategoryLastLot
 
 class CategoryRunner:
     def __init__(self, runner):

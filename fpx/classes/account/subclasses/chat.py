@@ -1,6 +1,7 @@
 from fpx.models.chat import ChatData, Message
 from fpx.utils import errors as fpx_err
 
+
 class ChatManager:
     def __init__(self, account):
         self._account = account
@@ -10,14 +11,14 @@ class ChatManager:
         Собирает все чаты на аккаунте.
 
         Returns:
-            list[Chat]: Список объектов чатов. Каждый содержит:   
-                - id (str): ID чата (node_id).  
-                - username (str): Имя клиента.  
-                - last_msg (str): Последнее сообщение в чате.   
-                - date (str): Дата последнего сообщения.    
-                - link (str): Полная ссылка на чат. 
-                - is_unread (bool): Прочитано или нет (True, если не прочитано).    
-        
+            list[Chat]: Список объектов чатов. Каждый содержит:
+                - id (str): ID чата (node_id).
+                - username (str): Имя клиента.
+                - last_msg (str): Последнее сообщение в чате.
+                - date (str): Дата последнего сообщения.
+                - link (str): Полная ссылка на чат.
+                - is_unread (bool): Прочитано или нет (True, если не прочитано).
+
         Raises:
             FpxGetChatsError: Ошибка получения чатов FunPay
 
@@ -33,25 +34,27 @@ class ChatManager:
 
     async def send_message(self, chat_id: str, text: str, with_nodes: bool = False):
         """
-        Отправляет сообщение.  
+        Отправляет сообщение.
 
         Args:
-            chat_id (str): ID чата  
-            text (str): Текст сообщения 
+            chat_id (str): ID чата
+            text (str): Текст сообщения
 
         Returns:
-            bool: True, если сообщение отправлено   
+            bool: True, если сообщение отправлено
 
         Raises:
-            FpxMessageNotDelivered: Если не удалось отправить сообщение.   
-        
+            FpxMessageNotDelivered: Если не удалось отправить сообщение.
+
         """
         step = f'запрос данных чата ID {chat_id}'
         try:
             if chat_id not in self._account.data._node_names or not self._account.data._csrf_token:
                 await self.get_chat_data(chat_id)
             step = f'POST запрос на отправку сообщения {text} в чат ID {chat_id}'
-            response = await self._account._client.send_message_request(self._account.data._node_names[chat_id], -1, text)
+            response = await self._account._client.send_message_request(
+                self._account.data._node_names[chat_id], -1, text
+            )
             inner_response = response.get('response', {})
         except Exception as e:
             raise fpx_err.FpxMessageDeliverError(f'Не удалось выполнить {step}. Ошибка: {e}')
@@ -69,15 +72,15 @@ class ChatManager:
             chat_id (int | str): Айди чата
 
         Returns:
-            ChatData: Объект с тех. данными чата:   
-                - node_name (str): Полный ID переписки, нужный для отправки сообщения (users-8778502-19903068)  
-                - csrf_token (str): Нужен для post запросов, сохраняется в кеш self.account._csrf_token  
-                - user_id (str): твой ID     
-                - Message: Объект, содержащий последнее сообщение в чате:           
-                    - chat_id (str): ID чата       
-                    - is_system (bool): Системное ли сообщение            
-                    - sender (str): Отправитель сообщения   
-                    - text (str): Текст сообщения       
+            ChatData: Объект с тех. данными чата:
+                - node_name (str): Полный ID переписки, нужный для отправки сообщения (users-8778502-19903068)
+                - csrf_token (str): Нужен для post запросов, сохраняется в кеш self.account._csrf_token
+                - user_id (str): твой ID
+                - Message: Объект, содержащий последнее сообщение в чате:
+                    - chat_id (str): ID чата
+                    - is_system (bool): Системное ли сообщение
+                    - sender (str): Отправитель сообщения
+                    - text (str): Текст сообщения
         Raises:
             FpxGetChatDataError: Ошибка запроса данных чата
         '''
@@ -90,10 +93,20 @@ class ChatManager:
             raise fpx_err.FpxGetChatDataError(f'При выполнении {stage} произошла ошибка: {e}')
         if data.get('last_message'):
             last_message_dict = data.get('last_message')
-            last_msg = Message(sender=last_message_dict.get('sender'), text=last_message_dict.get('message'), is_system=last_message_dict.get('is_system'), chat_id=chat_id)
+            last_msg = Message(
+                sender=last_message_dict.get('sender'),
+                text=last_message_dict.get('message'),
+                is_system=last_message_dict.get('is_system'),
+                chat_id=chat_id
+            )
         else:
             last_msg = None
-        chat = ChatData(node_name=data['data-name'], csrf_token=data['csrf-token'], user_id=data['user-id'], last_message=last_msg)
+        chat = ChatData(
+            node_name=data['data-name'],
+            csrf_token=data['csrf-token'],
+            user_id=data['user-id'],
+            last_message=last_msg
+        )
         self._account.data._node_names[chat_id] = chat.node_name
         self._account.data._csrf_token = chat.csrf_token
         self._account.data.user_id = chat.user_id

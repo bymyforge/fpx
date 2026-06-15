@@ -1,21 +1,17 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional, Any
+from typing import Any, Optional
 
+from fpx.models.lots import LotInfo
 from fpx.utils import errors as fpx_err
+
 
 @dataclass
 class Balance:
     rub: float=0.0
     usd: float=0.0
     eur: float=0.0
-
-@dataclass
-class Profile:
-    category_ids: list
-    lots: list[LotInfo] = field(default_factory=list)
-    reviews: list[CurReview] = field(default_factory=list)
 
 @dataclass
 class CurReview:
@@ -40,7 +36,7 @@ class CurReview:
             stars=self.stars
         )
         return await self._client._account.review.review_answer(self.order_id, formatted_reply)
-    
+
     async def message_author(self, message_text: str) -> bool:
         '''Ответить на отзыв в чате'''
         if not self._client:
@@ -54,8 +50,13 @@ class CurReview:
             order_time=self.order.order_time,
             stars=self.stars
         )
-        #добавить ещё ревью тайм
         return await self._client._account.chat.send_message(self.order.chat_id, formatted_reply)
+
+@dataclass
+class Profile:
+    category_ids: list
+    lots: list[LotInfo] = field(default_factory=list)
+    reviews: list[CurReview] = field(default_factory=list)
 
 @dataclass
 class UserData:

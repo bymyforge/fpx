@@ -1,9 +1,9 @@
-import json
 import logging
 
 from bs4 import BeautifulSoup
 
 from fpx.utils import errors as fpx_err
+
 from ._base import BaseParser
 
 logger = logging.getLogger("fpx.lot_parser")
@@ -23,7 +23,10 @@ class LotParser(BaseParser):
             if data_game:
                 return data_game
             raise fpx_err.FpxParseError('Атрибут data-game не найден внутри кнопки поднятия')
-        raise fpx_err.FpxNullDataError('На странице лотов не найдена кнопка для поднятия. Возможно у вас нет созданных лотов в этой категории')
+        raise fpx_err.FpxNullDataError(
+            'На странице лотов не найдена кнопка для поднятия.'
+            'Возможно у вас нет созданных лотов в этой категории'
+        )
 
     @classmethod
     def parse_current_lot_menu(cls, html_content):
@@ -34,7 +37,9 @@ class LotParser(BaseParser):
         if not param_items:
             param_items = [h5.find_parent('div') for h5 in soup.find_all('h5') if h5.find_parent('div')]
         if not param_items:
-            raise fpx_err.FpxNullDataError('Страница лота не найдена. Возможно, указана инвалидная ссылка или лот был удалён.')
+            raise fpx_err.FpxNullDataError(
+                'Страница лота не найдена. Возможно, указана инвалидная ссылка или лот был удалён.'
+            )
         else:
             descriptions = {}
             for item in param_items:
@@ -47,8 +52,16 @@ class LotParser(BaseParser):
                         descriptions[header] = text
                 except Exception as e:
                     logger.debug(f'При парсинге конкретного объекта произошла ошибка: {e}')
-            result['short_desc'] = descriptions.get('Краткое описание') or descriptions.get('Short description') or descriptions.get('Короткий опис')
-            result['description'] = descriptions.get('Подробное описание') or descriptions.get('Detailed description') or descriptions.get('Докладний опис')
+            result['short_desc'] = (
+                descriptions.get('Краткое описание')
+                or descriptions.get('Short description')
+                or descriptions.get('Короткий опис')
+            )
+            result['description'] = (
+                descriptions.get('Подробное описание')
+                or descriptions.get('Detailed description')
+                or descriptions.get('Докладний опис')
+            )
             option = soup.find('option', value='21') or soup.find('option', attrs={'data-content': True})
             if option:
                 inner_html = option.get('data-content')
@@ -64,7 +77,7 @@ class LotParser(BaseParser):
                         result['price'] = 0.0
                     return result
             raise fpx_err.FpxNullDataError('Не удалось найти цену в скрытых атрибутах выбора оплаты.')
-    
+
     @classmethod
     def parse_edit_lot_page(cls, html_content):
         ''' https://funpay.com/lots/offerEdit?node=...&offer=... '''
@@ -76,11 +89,14 @@ class LotParser(BaseParser):
         result = {tag.get('name'): tag.get('value', '') for tag in hidden_inputs if tag.get('name')}
         selects = soup.find_all('select')
         if not selects:
-            raise fpx_err.FpxNullDataError('Ни одна выборка в редакторе лотов не найдена. Проверьте актуальность сессии')
+            raise fpx_err.FpxNullDataError(
+                'Ни одна выборка в редакторе лотов не найдена. Проверьте актуальность сессии'
+            )
         for s in selects:
             try:
                 name = s.get('name')
-                if not name: continue
+                if not name:
+                    continue
                 selected_option = s.find('option', selected=True)
                 if selected_option:
                     result[name] = selected_option.get('value', '')
@@ -91,7 +107,11 @@ class LotParser(BaseParser):
                 logger.debug(f'При парсинге конкретной выборки произошла ошибка: {e}')
         inputs = soup.find_all('input', class_='form-control')
         if not inputs:
-            inputs = [i for i in soup.find_all('input') if i.get('name') and i.get('type') in ['text', 'number', None] and i.get('type') != 'hidden']
+            inputs = [
+                i for i in soup.find_all('input')
+                if i.get('name') and i.get('type') in ['text', 'number', None]
+                and i.get('type') != 'hidden'
+            ]
         if not inputs:
             logger.debug('Ни одно поле для ввода в редакторе лотов не найдено. Возможно всё в порядке')
         else:

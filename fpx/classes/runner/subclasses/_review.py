@@ -1,8 +1,7 @@
 import asyncio
 import logging
-import inspect
 
-from fpx.models.account import CurReview, Order
+from fpx.models.account import CurReview
 
 logger = logging.getLogger("fpx.review_runner")
 

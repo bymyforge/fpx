@@ -1,9 +1,9 @@
-import json
 import logging
 
 from bs4 import BeautifulSoup
 
 from fpx.utils import errors as fpx_err
+
 from ._base import BaseParser
 
 logger = logging.getLogger("fpx.order_parser")
@@ -31,7 +31,9 @@ class OrderParser(BaseParser):
                 result['chat_id'] = chat_link.get('data-id', '') if chat_link else None
             header = soup.find('h1', class_='page-header') or soup.find('h1')
             if not header:
-                raise fpx_err.FpxNullDataError('Страница заказа не найдена, возможно, указан неверный ID или слетела сессия.')
+                raise fpx_err.FpxNullDataError(
+                    'Страница заказа не найдена, возможно, указан неверный ID или слетела сессия.'
+            )
             spans = header.find_all('span')
             if spans:
                 result['status'] = " / ".join([span.get_text(strip=True) for span in spans])
@@ -47,7 +49,7 @@ class OrderParser(BaseParser):
                         result['status'] = parts[-1] if parts else 'Оплачен'
                 else:
                     result['status'] = full_header_text or 'Оплачен'
-                
+
             review_container = soup.find('div', class_='review-container')
             if review_container:
                 try:
@@ -86,7 +88,10 @@ class OrderParser(BaseParser):
         buttons = soup.select('div.lot-field-radio-box button')
         if not buttons:
             buttons = [btn for btn in soup.find_all('button') if btn.get('value') and btn.get('value') != 'Все']
-        filters = [btn.get('value').strip().lower() for btn in buttons if btn.get('value') and btn.get('value') != 'Все']
+        filters = [
+            btn.get('value').strip().lower()
+            for btn in buttons if btn.get('value') and btn.get('value') != 'Все'
+        ]
         lots = soup.select('a.tc-item:not(.offer-promo)')
         if not lots:
             lots = [

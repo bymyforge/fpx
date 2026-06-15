@@ -6,7 +6,7 @@ class BaseStorage:
     async def get_state(self, chat_id: str | int) -> str | None:
         '''Находит состояние'''
         raise NotImplementedError()
-    
+
     async def update_data(self, chat_id: str | int, **kwargs) -> None:
         '''Обновляет данные состояния (принимает kwargs)'''
         raise NotImplementedError()

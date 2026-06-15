@@ -1,6 +1,7 @@
-import json
 import asyncio
+import json
 import os
+
 from .base import BaseStorage
 
 
@@ -15,11 +16,11 @@ class FileStorage(BaseStorage):
             except json.JSONDecodeError:
                 self._states = {}
         self._lock = asyncio.Lock()
-    
+
     def _write_file(self):
         with open(self.file_path, 'w', encoding='utf-8') as f:
             json.dump(self._states, f, ensure_ascii=False, indent=4)
-    
+
     async def _save(self):
         async with self._lock:
             await asyncio.to_thread(self._write_file)
@@ -33,7 +34,7 @@ class FileStorage(BaseStorage):
 
     async def get_state(self, chat_id: str | int) -> str | None:
         return self._states.get(str(chat_id), {}).get('state')
-    
+
     async def update_data(self, chat_id: str | int, **kwargs) -> None:
         chat_id = str(chat_id)
         if chat_id not in self._states:

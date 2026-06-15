@@ -4,8 +4,9 @@ import re
 
 from bs4 import BeautifulSoup
 
-from fpx.utils import errors as fpx_err
 from fpx.models.account import Balance
+from fpx.utils import errors as fpx_err
+
 from ._base import BaseParser
 
 logger = logging.getLogger("fpx.profile_parser")
@@ -28,14 +29,19 @@ class ProfileParser(BaseParser):
             try:
                 value = i.replace('₽', '').replace('$', '').replace('€', '').replace(',', '.').strip()
                 num = float(value)
-                if '₽' in i: data['rub'] = num
-                elif '$' in i: data['usd'] = num
-                elif '€' in i: data['eur'] = num
+                if '₽' in i:
+                    data['rub'] = num
+                elif '$' in i:
+                    data['usd'] = num
+                elif '€' in i:
+                    data['eur'] = num
             except Exception as e:
                 logger.debug(f'Ошибка парсинга отдельной валюты: {e}. Пропускаем')
                 continue
         if not data:
-            raise fpx_err.FpxParseError('Не удалось распарсить ни одну валюту, верстка полностью изменилась или что-то сломалось.')
+            raise fpx_err.FpxParseError(
+                'Не удалось распарсить ни одну валюту, верстка полностью изменилась или что-то сломалось.'
+            )
         return Balance(**data)
 
     @classmethod
@@ -43,9 +49,14 @@ class ProfileParser(BaseParser):
         ''' Парсит https://funpay.com/users/.../ '''
         soup = BeautifulSoup(html_content, 'html.parser')
         offer_list = soup.find_all('div', class_='offer') or soup.find_all('div', attrs={'data-id': True})
-        review_list = soup.find_all('div', class_='review-compiled-review') or soup.find_all('div', class_='review-item')
+        review_list = soup.find_all('div', class_='review-compiled-review') or soup.find_all(
+            'div', class_='review-item'
+        )
         if not offer_list or not review_list:
-            logger.debug('На странице профиля не найден блок категорий или блок отзывов. Возможно ошибка или их просто не существует')
+            logger.debug(
+                'На странице профиля не найден блок категорий или блок отзывов.'
+                'Возможно ошибка или их просто не существует'
+            )
         category_ids = set()
         lots = []
         for offer in offer_list:
@@ -54,7 +65,7 @@ class ProfileParser(BaseParser):
                 logger.debug('В блоке категории не найдено лотов. Возможно ошибка/Их просто не существует')
             for link in links:
                 try:
-                    href = link['href']
+                    href = str(link['href'])
                     if '/lots/' in href and 'id=' not in href:
                         cat_id = href.strip('/').split('/')[-1]
                         if cat_id.isdigit():
@@ -72,7 +83,7 @@ class ProfileParser(BaseParser):
         reviews = []
         for review in review_list:
             try:
-                rev = {}
+                rev: dict = {}
                 text_tag = review.find('div', class_='review-item-text') or review.find('div')
                 rev['text'] = cls.clean_text(text_tag)
                 rate_div = review.find('div', class_='rating')
@@ -93,7 +104,7 @@ class ProfileParser(BaseParser):
                 order_div = review.find('div', class_='review-item-order')
                 if order_div:
                     a_tag = order_div.find('a', href=True)
-                    if a_tag:
+                    if a_tag and isinstance(a_tag, str):
                         rev['order_id'] = a_tag['href'].strip('/').split('/')[-1]
                     else:
                         rev['order_id'] = ''
@@ -126,7 +137,9 @@ class ProfileParser(BaseParser):
                 pre_result['order-time'] = time_tag.get_text(strip=True) if time_tag else ""
                 status_tag = item.find('div', class_='tc-status')
                 pre_result['status'] = status_tag.get_text(strip=True) if status_tag else "Unknown"
-                client_tag = item.find('span', class_='pseudo-a') or item.find('div', class_='tc-user') or item.find('div', class_=lambda c: c and 'user' in c)
+                client_tag = item.find('span', class_='pseudo-a') or item.find('div', class_='tc-user') or item.find(
+                    'div', class_=lambda c: c and 'user' in c
+                )
                 pre_result['client-name'] = client_tag.get_text(strip=True) if client_tag else "Unknown"
                 price_tag = item.find('div', class_='tc-price')
                 if price_tag:
@@ -177,14 +190,16 @@ class ProfileParser(BaseParser):
             user_link = soup.find('a', href=lambda h: h and '/users/' in h)
         result = {}
         if user_link:
-            href = user_link.get('href', '')
-            user_id = href.strip('/').split('/')[-1]
-            if user_id.isdigit():
+            href = str(user_link.get('href', ''))
+            user_id = href.strip('/').split('/')[-1] if href else None
+            if user_id and user_id.isdigit():
                 result['user-id'] = user_id
                 name_tag = soup.find('div', class_='user-link-name') or user_link.find('div') or user_link
                 result['username'] = cls.clean_text(name_tag) if name_tag else "Unknown"
             else:
-                raise fpx_err.FpxParseError('Не удалось извлечь цифровой ID юзера, возможно слетела сессия или изменилась вёрстка')
+                raise fpx_err.FpxParseError(
+                    'Не удалось извлечь цифровой ID юзера, возможно слетела сессия или изменилась вёрстка'
+                )
         else:
             raise fpx_err.FpxNullDataError('На главной странице не найдено информации о юзере. Возможно слетела сессия')
         body = soup.find('body')
@@ -192,7 +207,7 @@ class ProfileParser(BaseParser):
             raise fpx_err.FpxNullDataError('Тело главной страницы (body) не найдено')
         try:
             app_data_str = body.get('data-app-data', '{}')
-            app_data = json.loads(app_data_str)
+            app_data = json.loads(str(app_data_str))
             result['csrf-token'] = app_data.get('csrf-token', '')
         except Exception:
             raise fpx_err.FpxParseError('Не удалось распарсить csrf_token из data-app-data.')

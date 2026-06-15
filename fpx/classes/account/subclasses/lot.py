@@ -1,4 +1,4 @@
-from fpx.models.lots import LotEditor, CurrentLotInfo
+from fpx.models.lots import CurrentLotInfo, LotEditor
 from fpx.utils import errors as fpx_err
 
 
@@ -15,13 +15,13 @@ class LotManager:
             lot_id (str | int): Айди лота
         Returns:
             LotEditor: Возвращает объект с:
-                - csrf_token (str): нужен для любого post запроса.  
-                - form_created_at (str): время создания формы изменения лота.  
-                - offer_id (str): Айди оффера(лота).  
-                - node_id (str): Айди нода.  
-                - location (str): Обычно пустой.  
-                - deleted (str): Обычно пустой.  
-                - fields (dict): Словарь с филдами, нет фиксированного кол-ва филдов, просто отправляйте все.  
+                - csrf_token (str): нужен для любого post запроса.
+                - form_created_at (str): время создания формы изменения лота.
+                - offer_id (str): Айди оффера(лота).
+                - node_id (str): Айди нода.
+                - location (str): Обычно пустой.
+                - deleted (str): Обычно пустой.
+                - fields (dict): Словарь с филдами, нет фиксированного кол-ва филдов, просто отправляйте все.
         Raises:
             FpxGetLotEditorInfoError: ошибка поулучения данных редактора
         '''
@@ -45,10 +45,10 @@ class LotManager:
         Args:
             lot_id (str | int): ID лота.
         Returns:
-            CurrentLotInfo: Объект с этими данными:  
-                - short_desc (str): Краткое описание.   
-                - description (str): Полное описание.  
-                - price (float): Цена лота.  
+            CurrentLotInfo: Объект с этими данными:
+                - short_desc (str): Краткое описание.
+                - description (str): Полное описание.
+                - price (float): Цена лота.
         Raises:
             FpxGetLotInfoError: Ошибка запроса данных лота
         '''
@@ -74,9 +74,9 @@ class LotManager:
         Поднимает все лоты.
 
         Returns:
-            list: Ответы от сервера. 
+            list: Ответы от сервера.
         Raises:
-            FpxRaisingLotError: Лот не поднят. 
+            FpxRaisingLotError: Лот не поднят.
         '''
         if not self._account.data._csrf_token:
             await self._account.profile.get_user_data()

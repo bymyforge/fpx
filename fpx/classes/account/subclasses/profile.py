@@ -1,6 +1,5 @@
-from fpx.models.account import UserData, Order, Profile, CurReview
+from fpx.models.account import CurReview, Order, Profile, UserData
 from fpx.models.lots import LotInfo
-
 from fpx.utils import errors as fpx_err
 
 
@@ -12,13 +11,13 @@ class ProfileManager:
     async def get_user_data(self):
         '''
         Запрашивает данные юзера, сохраняет их в кеш.
-        
+
         Returns:
-            UserData: Объект с данными юзера:   
-                - user_id (str): ID юзера.  
-                - csrf_token (str): Нужен для любого post запроса на funpay.  
+            UserData: Объект с данными юзера:
+                - user_id (str): ID юзера.
+                - csrf_token (str): Нужен для любого post запроса на funpay.
         Raises:
-            FpxGetUserDataError: ошибка запроса данных юзера  
+            FpxGetUserDataError: ошибка запроса данных юзера
         '''
         try:
             stage = 'запроса данных FunPay'
@@ -41,18 +40,18 @@ class ProfileManager:
         Args:
             limit (int): Лимит заказов, которые нужно вернуть(если 0, то вернёт все заказы).
         Returns:
-            list: Список объектов, каждый содержит в себе:      
-                - order_id (str): ID заказа.        
-                - order_time (str): Время создания заказа.      
-                - client_name (str): Имя клиента.       
-                - price (float): Сумма заказа.      
-                - amount (int): Кол-во штук заказа (1 по дефолту).      
-                - topup_nickname (str): Данные, на которые отправлять пополнение. (ник, ссылка игрока и тд.)    
-                - status (str): Статус заказа.  
-                - name (str): Название заказа.  
-                - category (str): Категория заказа.   
+            list: Список объектов, каждый содержит в себе:
+                - order_id (str): ID заказа.
+                - order_time (str): Время создания заказа.
+                - client_name (str): Имя клиента.
+                - price (float): Сумма заказа.
+                - amount (int): Кол-во штук заказа (1 по дефолту).
+                - topup_nickname (str): Данные, на которые отправлять пополнение. (ник, ссылка игрока и тд.)
+                - status (str): Статус заказа.
+                - name (str): Название заказа.
+                - category (str): Категория заказа.
         Raises:
-            FpxGetUserSellsError: Ошибка запроса продаж  
+            FpxGetUserSellsError: Ошибка запроса продаж
         '''
         try:
             stage = 'запроса данных FunPay'
@@ -87,16 +86,18 @@ class ProfileManager:
         '''
         Запрашивает профиль юзера.
         Args:
-            user_id (str | int): Можно не передавать, если None, сама узнает айди владельца сессии и запросит данные о нём. Айди юзера.
+            user_id (str | int): Можно не передавать, если None,
+            сама узнает айди владельца сессии и запросит данные о нём.
+            Айди юзера.
         Returns:
-            Profile: Объект, с данными:  
-                - category_ids (list): ID категорий, в которых у юзера выставлены лоты.   
-                - lots (list): Список словарей с лотами юзера юзера {lot['name']: lot['id']}.   
-                - reviews (list): Список объектов отзыва CurReview с данными:  
-                    - text (str): Текст отзыва. 
-                    - stars (int): Кол-во звёзд в отзыве (1-5). 
-                    - author (str): Автор отзыва.   
-                    - item_name (str): Название заказа, под которым оставлен отзыв.     
+            Profile: Объект, с данными:
+                - category_ids (list): ID категорий, в которых у юзера выставлены лоты.
+                - lots (list): Список словарей с лотами юзера юзера {lot['name']: lot['id']}.
+                - reviews (list): Список объектов отзыва CurReview с данными:
+                    - text (str): Текст отзыва.
+                    - stars (int): Кол-во звёзд в отзыве (1-5).
+                    - author (str): Автор отзыва.
+                    - item_name (str): Название заказа, под которым оставлен отзыв.
         Raises:
             FpxGetProfileError: Ошибка запроса профиля
         '''
@@ -111,7 +112,15 @@ class ProfileManager:
             data = self._account._parser.parse_profile(html)
             step = 'типизации данных'
             lots_list = [LotInfo(name=lot['name'], id=lot['id']) for lot in data['lots']]
-            reviews = [CurReview(text=rev['text'], stars=rev['stars'], author=rev['author'], order_id=rev['order_id']) for rev in data['reviews']]
+            reviews = [
+                CurReview(
+                    text=rev['text'],
+                    stars=rev['stars'],
+                    author=rev['author'],
+                    order_id=rev['order_id']
+                )
+            for rev in data['reviews']
+            ]
             profile = Profile(category_ids=data['category-ids'], lots=lots_list, reviews=reviews)
         except Exception as e:
             raise fpx_err.FpxGetProfileError(f'При выполнении {step} произошла ошибка: {e}')
@@ -122,10 +131,10 @@ class ProfileManager:
         Собирает баланс аккаунта.
 
         Returns:
-            Balance: Объект с валютами:    
-                - rub (float): Баланс в рублях  
-                - usd (float): Баланс в долларах  
-                - eur (float): Баланс в евро    
+            Balance: Объект с валютами:
+                - rub (float): Баланс в рублях
+                - usd (float): Баланс в долларах
+                - eur (float): Баланс в евро
         Raises:
             FpxGetProfileError: Ошибка сбора баланса
         '''

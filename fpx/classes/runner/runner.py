@@ -1,14 +1,15 @@
 import asyncio
+from typing import Any
+
 import httpx
-from types import SimpleNamespace
 
-from fpx.utils import errors as fpx_err
-
+from fpx.classes.runner.subclasses._category import CategoryRunner
 from fpx.classes.runner.subclasses._chat import ChatRunner
 from fpx.classes.runner.subclasses._order import OrderRunner
 from fpx.classes.runner.subclasses._review import ReviewRunner
-from fpx.classes.runner.subclasses._category import CategoryRunner
 from fpx.classes.runner.subclasses.router import Router
+from fpx.utils import errors as fpx_err
+
 
 class Runner:
     def __init__(self, account):
@@ -40,15 +41,20 @@ class Runner:
         """
         while True:
             await asyncio.sleep(3600)
-    
-    async def _run_loop(self, timer, watch_lots:list=None, watch_chips:list=None):
+
+    async def _run_loop(
+        self,
+        timer,
+        watch_lots: list[str | int] | None = None,
+        watch_chips: list[str | int] | None = None
+    ):
         while True:
             try:
                 await self._cache_runner(watch_lots, watch_chips)
                 await asyncio.sleep(timer)
             except fpx_err.FpxRequestError:
                 await asyncio.sleep(60)
-            except fpx_err.FpxAccountError as e:
+            except fpx_err.FpxAccountError:
                 await asyncio.sleep(5)
                 continue
             except (httpx.HTTPError, httpx.NetworkError):
@@ -56,15 +62,26 @@ class Runner:
             except Exception as e:
                 raise fpx_err.FpxCriticalRunnerError(message=str(e))
 
-    async def start_polling(self, timer=3, is_background:bool=True, watch_lots:list=None, watch_chips:list=None):
+    async def start_polling(
+        self,
+        timer=3,
+        is_background: bool=True,
+        watch_lots: list[str | int] | None = None,
+        watch_chips: list[str | int] | None = None
+    ):
         '''
         Запускает поиск новых событий.
 
         Args:
-            timer (str): Задержка в секундах, раз в которую будет происходить обновление кеша (рекомендуемо 3-5 сек).   
-            is_background (bool): По дефолту True(в фоне). Определяет, будет ли функция запущена в фоне или нет (если не в фоне, блокирует остальные процессы). 
-            watch_lots (list): Можно не передавать. Список категорий лотов, которые будет проверять скрипт.     
-            watch_chips (list): Можно не передавать. Список категорий чипсов(коротких лотов под валюты), которые будет проверять скрипт.
+            timer (str): Задержка в секундах, раз в которую будет происходить обновление кеша (рекомендуемо 3-5 сек).
+            is_background (bool): По дефолту True(в фоне).
+                Определяет, будет ли функция запущена в фоне
+                или нет (если не в фоне, блокирует остальные процессы).
+            watch_lots (list): Можно не передавать.
+                Список категорий лотов, которые будет проверять скрипт.
+            watch_chips (list): Можно не передавать.
+                Список категорий чипсов(коротких лотов под валюты),
+                которые будет проверять скрипт.
         '''
         if is_background:
             task = asyncio.create_task(self._run_loop(timer, watch_lots, watch_chips))
@@ -121,14 +138,15 @@ class Runner:
             if isinstance(result, Exception):
                 await self._handle_error(None, result)
 
-    async def _handle_error(self, event: any, exception: Exception):
+    async def _handle_error(self, event: Any, exception: Exception):
         '''Централизованная обработка любых ошибок.
-        event может быть Message, Order, Review или None. Советую проверять через if isinstanse(exception, fpx_err...)
+        event может быть Message, Order, Review или None.
+        Советую проверять через if isinstanse(exception, fpx_err...)
         '''
         error_handlers = self.router._handlers.get('error', [])
         for handler in error_handlers:
             if handler:
-                if asyncio.iscoroutinefunction(error_handler):
-                    await error_handler(event, exception)
+                if asyncio.iscoroutinefunction(handler):
+                    await handler(event, exception)
                 else:
-                    error_handler(event, exception)
+                    handler(event, exception)

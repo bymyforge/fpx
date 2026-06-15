@@ -1,10 +1,10 @@
+import asyncio
 import inspect
 import logging
-import asyncio
 import re
 
-from fpx.models.chat import Message
 from fpx.fsm import FSMContext
+from fpx.models.chat import Message
 from fpx.utils import errors as fpx_err
 
 logger = logging.getLogger("fpx.chat_runner")
@@ -15,16 +15,33 @@ class ChatRunner:
 
     def _compare_chat_cache(self):
         '''
-        Сравнивает старый кеш сообщений с новым, если находит отличия, выносит сообщение в список, после чего возвращает полный список
+        Сравнивает старый кеш сообщений с новым, если находит отличия,
+        выносит сообщение в список,
+        после чего возвращает полный список
         '''
         result = []
         if self.runner._cache['msgs'] != self.runner._cache['old_msgs']:
             for message in self.runner._cache['msgs']:
                 if message not in self.runner._cache['old_msgs']:
-                    stop_words = ('оплатил заказ', 'можете перейти в discord', 'написал отзыв', 'изменил отзыв', 'вернул деньги', 'подтвердил успешное выполнение', 'удалил отзыв', 'оплатив замовлення', 'написав відгук', 'змінив відгук', 'повернув гроші', 'підтвердив успішне виконання', 'видалив відгук', 'has paid for order', 'you can use Discord', 'given feedback', 'changed feedback', 'has refunded', 'has confirmed that', 'deleted their feedback', 'replied to their')
+                    stop_words = (
+                        'оплатил заказ', 'можете перейти в discord', 'написал отзыв', 'изменил отзыв',
+                        'вернул деньги', 'подтвердил успешное выполнение', 'удалил отзыв',
+                        'оплатив замовлення', 'написав відгук', 'змінив відгук', 'повернув гроші',
+                        'підтвердив успішне виконання', 'видалив відгук', 'has paid for order',
+                        'you can use Discord', 'given feedback', 'changed feedback',
+                        'has refunded', 'has confirmed that', 'deleted their feedback',
+                        'replied to their'
+                        )
                     msg_lower = message['last_msg'].lower()
                     if not any(word in msg_lower for word in stop_words):
-                        result.append(Message(sender=message['sender'], chat_id=message['chat_id'], text=message['last_msg'], is_system=False))
+                        result.append(
+                            Message(
+                                sender=message['sender'],
+                                chat_id=message['chat_id'],
+                                text=message['last_msg'],
+                                is_system=False
+                                )
+                            )
         return result
 
     async def _update_chat_cache(self):
@@ -55,7 +72,7 @@ class ChatRunner:
                 sig = inspect.signature(target_function)
                 text_param_names = [
                     name for name, param in sig.parameters.items()
-                    if param.annotation == str and param.default is inspect.Parameter.empty
+                    if param.annotation is str and param.default is inspect.Parameter.empty
                     and param.annotation not in (Message, FSMContext)
                 ]
                 if len(args) < len(text_param_names):
@@ -172,10 +189,10 @@ class ChatRunner:
                         matched = True
                         break
                     if not matched:
-                        continue 
+                        continue
             await self.runner.router.invoke(handler['function'], message, state_ctx)
             break
-            
+
     async def _check_chats(self):
         await self._update_chat_cache()
         chats = self._compare_chat_cache()
@@ -190,11 +207,11 @@ class ChatRunner:
                     stop_list = ['изображение', 'image', 'зображення']
                     text = chat_cache_obj.text if chat_cache_obj.text.lower() not in stop_list else message.text
                     chat_msg = Message(
-                        sender=message.sender, 
-                        chat_id=chat_cache_obj.chat_id, 
-                        text=text, 
+                        sender=message.sender,
+                        chat_id=chat_cache_obj.chat_id,
+                        text=text,
                         is_system=message.is_system
-                    )   
+                    )
                     chat_msg._client = self.runner
                     await self._trigger_message_handlers(chat_msg)
                 except Exception as e:
