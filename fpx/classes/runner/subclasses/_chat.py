@@ -77,7 +77,10 @@ class ChatRunner:
                 ]
                 if len(args) < len(text_param_names):
                     missing_param = text_param_names[len(args)]
-                    raise fpx_err.FpxCommandArgsError(target_function.__name__, missing_param)
+                    await self.runner._handle_error(
+                        message, fpx_err.FpxCommandArgsError(target_function.__name__, missing_param
+                    ))
+                    return False
                 await self.runner.router.invoke(target_function, message, state_ctx, args=args)
                 return True
         return False
@@ -188,8 +191,8 @@ class ChatRunner:
                         await message.answer(formatted_reply)
                         matched = True
                         break
-                    if not matched:
-                        continue
+                if not matched:
+                    continue
             await self.runner.router.invoke(handler['function'], message, state_ctx)
             break
 

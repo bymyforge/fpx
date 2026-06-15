@@ -55,6 +55,7 @@ class Router:
                         kwargs[param_name] = await dep_func(ev)
                     else:
                         kwargs[param_name] = dep_func(ev)
+                    continue
                 if args and param.default is inspect.Parameter.empty:
                     if arg_index < len(args):
                         kwargs[param_name] = args[arg_index]
