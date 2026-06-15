@@ -104,8 +104,8 @@ class ProfileParser(BaseParser):
                 order_div = review.find('div', class_='review-item-order')
                 if order_div:
                     a_tag = order_div.find('a', href=True)
-                    if a_tag and isinstance(a_tag, str):
-                        rev['order_id'] = a_tag['href'].strip('/').split('/')[-1]
+                    if a_tag and not isinstance(a_tag, str):
+                        rev['order_id'] = str(a_tag['href'].strip('/').split('/')[-1]) # type: ignore[union-attr]
                     else:
                         rev['order_id'] = ''
                 else:
