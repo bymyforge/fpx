@@ -43,7 +43,7 @@ class Router:
             kwargs = {}
             arg_index = 0
             for param_name, param in sig.parameters.items():
-                if param.annotation is type(ev):
+                if param.annotation is not inspect.Parameter.empty and isinstance(ev, param.annotation):
                     kwargs[param_name] = ev
                     continue
                 if state_ctx and param.annotation == FSMContext:
@@ -51,10 +51,17 @@ class Router:
                     continue
                 if isinstance(param.default, Dependency):
                     dep_func = param.default.dependency
-                    if asyncio.iscoroutinefunction(dep_func):
-                        kwargs[param_name] = await dep_func(ev)
+                    dep_sig = inspect.signature(dep_func)
+                    if len(dep_sig.parameters) == 0:
+                        if asyncio.iscoroutinefunction(dep_func):
+                            kwargs[param_name] = await dep_func(ev)
+                        else:
+                            kwargs[param_name] = dep_func(ev)
                     else:
-                        kwargs[param_name] = dep_func(ev)
+                        if asyncio.iscoroutinefunction(dep_func):
+                            kwargs[param_name] = await dep_func(ev)
+                        else:
+                            kwargs[param_name] = dep_func(ev)
                     continue
                 if args and param.default is inspect.Parameter.empty:
                     if arg_index < len(args):
