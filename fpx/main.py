@@ -52,5 +52,10 @@ class FunPayTools:
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        if self._client:
+        await self.shutdown()
+
+    async def shutdown(self):
+        if hasattr(self, 'runner') and self.runner.is_running:
+            self.runner.is_running = False
+        if self._client and not self._client.is_closed:
             await self._client.aclose()

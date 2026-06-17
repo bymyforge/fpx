@@ -33,6 +33,7 @@ class Runner:
             'old_chip_categories': []
         }
         self._cache_is_updated = False
+        self.is_running = True
 
     async def idle(self):
         """
@@ -48,7 +49,7 @@ class Runner:
         watch_lots: list[str | int] | None = None,
         watch_chips: list[str | int] | None = None
     ):
-        while True:
+        while self.is_running:
             try:
                 await self._cache_runner(watch_lots, watch_chips)
                 await asyncio.sleep(timer)
