@@ -11,7 +11,6 @@ class ReviewRunner:
 
     async def _update_review_cache(self):
         '''Обновляет кеш отзывов'''
-        logger.debug('Чето запуск')
         profile = await self.runner._account.profile.profile()
         self.runner._cache['old_reviews'] = self.runner._cache.get('reviews', [])
         self.runner._cache['reviews'] = profile.reviews

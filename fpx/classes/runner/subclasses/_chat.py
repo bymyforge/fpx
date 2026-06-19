@@ -59,30 +59,28 @@ class ChatRunner:
     async def _process_message(self, message: Message, state_ctx):
         if not message.text:
             return False
-        parts = message.text.split()
-        if not parts:
-            return False
-        first_word = parts[0].lower()
-        args = parts[1:]
+        full_text = message.text.lower().strip()
         for cmd_handler in self.runner.router._handlers['commands']:
             target_command = cmd_handler['command']
-            target_command_lower = {k.lower(): v for k, v in target_command.items()}
-            if first_word in target_command_lower:
-                target_function = target_command_lower[first_word]
-                sig = inspect.signature(target_function)
-                text_param_names = [
-                    name for name, param in sig.parameters.items()
-                    if param.annotation is str and param.default is inspect.Parameter.empty
-                    and param.annotation not in (Message, FSMContext)
-                ]
-                if len(args) < len(text_param_names):
-                    missing_param = text_param_names[len(args)]
-                    await self.runner._handle_error(
-                        message, fpx_err.FpxCommandArgsError(target_function.__name__, missing_param
-                    ))
-                    return False
-                await self.runner.router.invoke(target_function, message, state_ctx, args=args)
-                return True
+            for cmd_text, target_function in target_command.items():
+                cmd_lower = cmd_text.lower()
+                if full_text == cmd_lower or full_text.startswith(cmd_lower + ' '):
+                    args_str = full_text[len(cmd_lower):].strip()
+                    args = args_str.split() if args_str else []
+                    sig = inspect.signature(target_function)
+                    text_param_names = [
+                        name for name, param in sig.parameters.items()
+                        if param.annotation is str and param.default is inspect.Parameter.empty
+                        and param.annotation not in (Message, FSMContext)
+                    ]
+                    if len(args) < len(text_param_names):
+                        missing_param = text_param_names[len(args)]
+                        await self.runner._handle_error(
+                            message, fpx_err.FpxCommandArgsError(target_function.__name__, missing_param)
+                        )
+                        return False
+                    await self.runner.router.invoke(target_function, message, state_ctx, args=args)
+                    return True
         return False
 
     def _check_text_filter(self, msg_text, filter_text, mapping):
