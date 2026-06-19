@@ -492,6 +492,32 @@ Raises:
     FpxGetOrderInfoError: Ошибка запроса данных заказа
 ```
 
+### `OrderManager.find_orders_by_buyer_name`
+
+```
+Ищет все заказы по имени покупателя.
+
+Args:
+    buyer_name (str): Имя покупателя.   
+    full_info (bool): Спрашивает показывать ли полную информацию по каждому заказу (требует дополнительный запрос). True по дефолту          
+Returns:
+    list[Order]: Список объектов Order, которые содержат:          
+        - order_id (str): ID заказа       
+        - order_time (str): Время заказа      
+        - client_name (str): Имя покупателя       
+        - price (float): Сумма заказа     
+        - status (str): Статус заказа       
+        - name (str): Название купленного лота      
+        - category (str): Категория заказа      
+        - amount (int): Кол-во штук заказа      
+        - topup_data (str): Данные пополнения (ссылка, ник, тп)     
+        - review (dict): Словарь с данными отзыва, который оставили к заказу.       
+        - description (str): Строка с подробным описанием заказа        
+        - chat_id (str): ID чата        
+Raises:
+    FpxGetOrderInfoError: Ошибка запроса данных заказа
+```
+
 ### `OrderManager.refund_order`
 
 ```

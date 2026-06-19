@@ -6,9 +6,10 @@ from fpx.fsm import BaseStorage, MemoryStorage
 
 
 class FunPayTools:
-    def __init__(self, gkey, storage: BaseStorage | None = None, proxy = None, http_client = None):
+    def __init__(self, gkey, gseal, storage: BaseStorage | None = None, proxy = None, http_client = None):
         self._cookies = {
             'golden_key': gkey,
+            'golden_seal': gseal,
             'locale': 'ru'
         }
         self._headers = {
