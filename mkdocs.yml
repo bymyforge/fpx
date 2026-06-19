@@ -39,6 +39,7 @@ nav:
     - Лоты и поднятие: lots.md
     - Редактор лотов: editor.md
     - Мониторинг категорий: category.md
+    - Логи: logging.md
   - Машина состояний: fsm.md
   - Ошибки: errors.md
   - API: api.md
