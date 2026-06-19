@@ -6,8 +6,8 @@
 
 ## Как работает
 
-- **Storage** — хранилище состояний. По умолчанию `MemoryStorage` (в памяти, сбрасывается при перезапуске). Есть `FileStorage` (сохраняет в JSON-файл).
-- **FSMContext** — объект через который управляешь состоянием конкретного чата.
+- **Storage** - хранилище состояний. По умолчанию `MemoryStorage` (в оператвной памяти, сбрасывается при перезапуске). Есть `FileStorage` (сохраняет в JSON файл) и `RedisStorage` (Redis, не теряет данные при перезапуске).
+- **FSMContext** - объект, через который управляешь состоянием конкретного чата.
 
 ---
 
@@ -50,11 +50,11 @@ async def get_confirm(message: Message, state: FSMContext):
 
 | Метод | Принимает | Возвращает | Описание |
 |-------|-----------|------------|----------|
-| `await state.set_state(state)` | `str` или `None` | — | Установить стейт. `None` — сбросить |
-| `await state.get_state()` | — | `str` или `None` | Текущий стейт |
-| `await state.update_data(**kwargs)` | kwargs | — | Сохранить данные |
-| `await state.get_data()` | — | `dict` | Получить сохранённые данные |
-| `await state.clear_state()` | — | — | Удалить стейт и данные |
+| `await state.set_state(state)` | `str` или `None` | - | Установить стейт. `None` - сбросить |
+| `await state.get_state()` | - | `str` или `None` | Текущий стейт |
+| `await state.update_data(**kwargs)` | kwargs | - | Сохранить данные |
+| `await state.get_data()` | - | `dict` | Получить сохранённые данные |
+| `await state.clear_state()` | - | - | Удалить стейт и данные |
 
 ---
 
@@ -68,6 +68,10 @@ from fpx import FunPayTools
 fp = FunPayTools('gkey')  # MemoryStorage используется автоматически
 ```
 
+Данные хранятся в памяти процесса. **Сбрасываются при перезапуске.**
+
+---
+
 ### FileStorage
 
 ```python
@@ -77,7 +81,39 @@ from fpx.fsm import FileStorage
 fp = FunPayTools('gkey', storage=FileStorage('states.json'))
 ```
 
-Состояния сохраняются в JSON-файл и переживают перезапуск.
+Состояния сохраняются в JSON файл который вы укажете в аргументах и **переживают перезапуск**.
+
+---
+
+### RedisStorage
+
+Хранит состояния в Redis. Данные **переживают перезапуск** и доступны между несколькими процессами.
+
+**Установка зависимости:**
+
+```bash
+pip install fpx-engine[redis]
+```
+
+**Использование:**
+
+```python
+from fpx import FunPayTools
+from fpx.fsm import RedisStorage
+
+storage = RedisStorage(
+    url='redis://localhost:6379',  # по умолчанию
+    prefix='fpx'                  # префикс ключей в Redis, по умолчанию 'fpx'
+)
+
+fp = FunPayTools('gkey', storage=storage)
+```
+
+Ключи хранятся в формате `{prefix}:fsm:{chat_id}`, например `fpx:fsm:12345`.
+
+> ⚠️ **Предупреждение:** При конкурентном доступе к одному `chat_id` возможна потеря данных (race condition). Для высоких нагрузок рекомендуется использовать Redis Lua-скрипты.
+
+---
 
 ### Кастомное хранилище
 
@@ -86,23 +122,33 @@ fp = FunPayTools('gkey', storage=FileStorage('states.json'))
 ```python
 from fpx.fsm import BaseStorage
 
-class RedisStorage(BaseStorage):
-    async def set_state(self, chat_id, state):
+class MyStorage(BaseStorage):
+    async def set_state(self, chat_id: str | int, state: str | None) -> None:
         # твоя логика
         pass
 
-    async def get_state(self, chat_id):
+    async def get_state(self, chat_id: str | int) -> str | None:
         pass
 
-    async def update_data(self, chat_id, **kwargs):
+    async def update_data(self, chat_id: str | int, **kwargs) -> None:
         pass
 
-    async def get_data(self, chat_id):
+    async def get_data(self, chat_id: str | int) -> dict:
         return {}
 
-    async def clear_state(self, chat_id):
+    async def clear_state(self, chat_id: str | int) -> None:
         pass
 ```
+
+---
+
+## Сравнение хранилищ
+
+| Хранилище | Переживает перезапуск | Несколько процессов | Зависимости |
+|-----------|:---------------------:|:-------------------:|-------------|
+| `MemoryStorage` | ❌ | ❌ | нет |
+| `FileStorage` | ✅ | ❌ | нет |
+| `RedisStorage` | ✅ | ✅ | `pip install fpx-engine[redis]` |
 
 ---
 
@@ -121,4 +167,4 @@ async def handler(message: Message, user: User = Dependency(get_cur_user)):
     print(user)
 ```
 
-Функция-зависимость получает `message` и `state` автоматически и возвращает объект, который попадает в параметр хендлера.
+Функция зависимость получает `message` и `state` автоматически и возвращает объект, который попадает в параметр хендлера.

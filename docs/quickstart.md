@@ -22,7 +22,7 @@
 pip install fpx-engine
 ```
 
-Требуется Python 3.8+.
+Требуется Python 3.10+.
 
 ---
 
