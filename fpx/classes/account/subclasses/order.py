@@ -42,6 +42,7 @@ class OrderManager:
     async def find_orders_by_buyer_name(
         self, buyer_name: str | None = None,
         order_name: str | None = None,
+        search_mode: str = 'partial', # 'exact' полное совпадение, 'partial' по части, 'keywords' по словам
         full_info: bool = True
     ):
         '''
@@ -50,10 +51,15 @@ class OrderManager:
 
         Args:
             buyer_name (str | None): Имя покупателя.
-            order_name (str | None): Название заказа.
+            order_name (str | None): Название заказа. Регистр игнорируется
+            search_mode (str, optional): Режим поиска для order_name:
+                - 'exact': точное совпадение названия;
+                - 'partial': поиск по части строки (подстроке);
+                - 'keywords': поиск по ключевым словам (все слова должны присутствовать).
+                По умолчанию 'partial'.
             full_info (bool): Спрашивает показывать ли полную информацию
-            по каждому заказу (требует дополнительный запрос).
-            True по дефолту
+                по каждому заказу (требует дополнительный запрос).
+                True по дефолту
         Returns:
             list[Order]: Список объектов Order, которые содержат:
                 - order_id (str): ID заказа
@@ -80,7 +86,13 @@ class OrderManager:
                 if buyer_name is not None:
                     checks.append(order.client_name == buyer_name)
                 if order_name is not None:
-                    checks.append(order.name == order_name)
+                    if search_mode == 'exact':
+                        checks.append(order.name.lower() == order_name.lower())
+                    elif search_mode == 'partial':
+                        checks.append(order_name.lower() in order.name.lower())
+                    elif search_mode == 'keywords':
+                        parts = order_name.lower().split()
+                        checks.append(all(p in order.name.lower() for p in parts))
                 if checks and all(checks):
                     good_orders.append(order)
             if buyer_name is None and order_name is None:
