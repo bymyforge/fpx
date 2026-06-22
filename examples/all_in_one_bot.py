@@ -1,10 +1,11 @@
 import asyncio
-from fpx import FunPayTools, Message, CurReview, Order
+
+from fpx import CurReview, FunPayTools, Message, Order
 
 CATEGORY_TO_WATCH = 1316
 
 async def main():
-    fp = FunPayTools('YOUR_GOLDEN_KEY')
+    fp = FunPayTools('YOUR_GOLDEN_KEY', 'YOUR_GOLDEN_SEAL')
 
     # ─── Старт ───
     @fp.router.on_startup()

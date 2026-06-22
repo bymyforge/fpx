@@ -1,25 +1,24 @@
 import asyncio
 from dataclasses import dataclass
+from typing import Annotated
 
-from fpx import FunPayTools, Message, Dependency
-from fpx.fsm import FSMContext
+from fpx import Dependency, FunPayTools, Message
 
 
 @dataclass
 class UserSetting:
     """Модель конфигурации текущего состояния продавца"""
-    is_online: bool  
-    can_sell: bool 
+    is_online: bool
+    can_sell: bool
     is_queue: bool
 
-async def get_setting_object(message: Message):
+async def get_setting_object(message: Message) -> UserSetting:
     """Функция для получения настроек из БД,
-    
     Замените возвращаемое значение на реальный запрос в базу данных.
     """
     return UserSetting(is_online=True, can_sell=True, is_queue=False)
 
-async def status_command(message: Message, user: UserSetting = Dependency(get_setting_object)):
+async def status_command(message: Message, user: Annotated[UserSetting, Dependency(get_setting_object)]):
     """Обработчик команды !status. Выводит текущий статус продавца."""
     online_status = "в" if user.is_online else "не в"
     sell_status = "могу" if user.can_sell else "не могу"
@@ -36,11 +35,11 @@ async def ping_seller_command(message: Message):
 
 async def main():
     # Инициализируем библиотеку
-    fp = FunPayTools('gkey')
+    fp = FunPayTools('gkey', 'YOUR_GOLDEN_SEAL')
 
     # Регистрируем команды в роутер
     fp.router.message_commands({
-        '!status': status_command, 
+        '!status': status_command,
         '!ping': ping_seller_command
     })
 

@@ -1,8 +1,10 @@
 import asyncio
+
 from fpx import FunPayTools, Order
 
+
 async def main():
-    fp = FunPayTools('gkey')
+    fp = FunPayTools('gkey', 'YOUR_GOLDEN_SEAL')
 
     @fp.router.on_new_order()
     async def greet_new_order(order: Order):

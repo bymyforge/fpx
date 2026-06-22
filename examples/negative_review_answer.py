@@ -1,8 +1,10 @@
 import asyncio
-from fpx import FunPayTools, CurReview
+
+from fpx import CurReview, FunPayTools
+
 
 async def main():
-    fp = FunPayTools('YOUR_GOLDEN_KEY')
+    fp = FunPayTools('YOUR_GOLDEN_KEY', 'YOUR_GOLDEN_SEAL')
 
     @fp.router.on_new_review(stars=1)
     @fp.router.on_new_review(stars=2)
