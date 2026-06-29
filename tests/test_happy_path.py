@@ -1,8 +1,10 @@
 """Интеграционный тест «счастливый путь»."""
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
+
 from fpx._parsers._chats import ChatParser
-from fpx.fsm import MemoryStorage, FSMContext
+from fpx.fsm import FSMContext, MemoryStorage
 from fpx.models.chat import Message
 
 
@@ -27,6 +29,7 @@ class TestHappyPath:
         assert await ctx.get_state() == "dialog"
 
         msg = Message(
+            node_msg_id=chat.node_msg_id,
             sender=chat.username, chat_id=chat.id,
             text=chat.last_msg, is_system=False
         )

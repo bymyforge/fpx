@@ -39,10 +39,11 @@ class ChatManager:
         Args:
             chat_id (str): ID чата
             text (str): Текст сообщения
-
         Returns:
-            bool: True, если сообщение отправлено
-
+            dict: Словарь, которым отвечает фанпей
+                в формате {'objects': [], 'response': {'error': None}},
+                если требуется, можно проверять if .send_message() / if not .send_message
+                при ошибке пункт Raises
         Raises:
             FpxMessageNotDelivered: Если не удалось отправить сообщение.
 
@@ -59,7 +60,7 @@ class ChatManager:
         except Exception as e:
             raise fpx_err.FpxMessageDeliverError(f'Не удалось выполнить {step}. Ошибка: {e}')
         if inner_response.get('error') is None:
-            return True
+            return response
         else:
             error_msg = inner_response.get('error', 'Неизвестная ошибка')
             raise fpx_err.FpxMessageDeliverError(f'Сервер вернул ошибку: {error_msg}')

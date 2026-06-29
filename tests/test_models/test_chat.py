@@ -1,8 +1,10 @@
 """Тесты моделей чатов."""
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
+
 from fpx.models.chat import Chat, ChatData, Message
 from fpx.utils import errors as fpx_err
-from unittest.mock import AsyncMock, MagicMock
 
 
 class TestChatModels:
@@ -15,18 +17,18 @@ class TestChatModels:
         assert chat.is_unread is True
 
     def test_chat_data_model(self):
-        cd = ChatData(node_name="users-1-2", csrf_token="abc", user_id="1", last_message=[])
+        cd = ChatData(node_name="users-1-2", csrf_token="abc", user_id="1", last_messages=[])
         assert cd.node_name == "users-1-2"
 
     def test_message_answer_without_client_raises(self):
-        msg = Message(sender="User", chat_id="123", text="Hello", is_system=False)
+        msg = Message(node_msg_id=123456, sender="User", chat_id="123", text="Hello", is_system=False)
         with pytest.raises(fpx_err.FpxClientNotAttachedError):
             import asyncio
             asyncio.run(msg.answer("Привет"))
 
     @pytest.mark.asyncio
     async def test_message_answer_with_mock_client(self):
-        msg = Message(sender="User", chat_id="123", text="Hello", is_system=False)
+        msg = Message(node_msg_id=123456, sender="User", chat_id="123", text="Hello", is_system=False)
         mock_client = MagicMock()
         mock_client._account.chat.send_message = AsyncMock(return_value=True)
         msg._client = mock_client

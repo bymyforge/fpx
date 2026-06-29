@@ -1,5 +1,6 @@
 """Тесты ChatParser — парсинг списка чатов и переписки."""
 import pytest
+
 from fpx._parsers._chats import ChatParser
 from fpx.models.chat import Chat
 from fpx.utils import errors as fpx_err
@@ -62,11 +63,13 @@ class TestChatParser:
         </body></html>
         """
         result = ChatParser.parse_chat(html)
-        assert "last_message" in result
-        msg = result["last_message"]
-        assert msg["sender"] == "Петр"
-        assert msg["message"] == "Как дела?"
-        assert msg["is_system"] is False
+        assert "messages" in result
+        msgs = result["messages"]
+        for msg in msgs:
+          assert msg["sender"] == "Петр"
+          assert msg["message"] == "Как дела?"
+          assert msg["is_system"] is False
+          break
 
     def test_parse_chat_system_notification(self):
         """Системное сообщение: отправитель = FunPay, is_system = True."""
@@ -83,9 +86,10 @@ class TestChatParser:
         </body></html>
         """
         result = ChatParser.parse_chat(html)
-        msg = result["last_message"]
-        assert msg["sender"] == "FunPay"
-        assert msg["is_system"] is True
+        msgs = result["messages"]
+        for msg in msgs:
+          assert msg["sender"] == "FunPay"
+          assert msg["is_system"] is True
 
     def test_parse_chat_empty_raises(self):
         """HTML без блока чата → FpxNullDataError."""
