@@ -51,7 +51,7 @@ class ChatParser(BaseParser):
     def parse_chat(cls, html_content: str):
         ''' Парсит страницу https://funpay.com/chat/?node=...'''
         soup = BeautifulSoup(html_content, 'html.parser')
-        result = {}
+        result: dict[str, Any] = {}
         chat_div = soup.find('div', class_='chat')
         if not chat_div:
             chat_div = soup.find('div', attrs={'data-id': re.compile(r'^\d+$')})
@@ -59,45 +59,47 @@ class ChatParser(BaseParser):
         if not chat_div or not body:
             raise fpx_err.FpxNullDataError('На странице чата не найден блок переписки или тег body')
         chats = soup.find_all('div', class_='chat-msg-item')
+        result['messages'] = []
         if chats:
-            try:
-                chat = chats[-1]
-                res: dict[str, Any] = {'is_system': False}
-                msg_tag = chat.find('div', class_='chat-msg-text')
-                if msg_tag:
-                    message = msg_tag.get_text(separator='\n').strip() if msg_tag else ''
-                    if not message:
-                        img_link = msg_tag.find('a', class_='chat-img-link')
-                        message = img_link.get('href', '') if img_link else '' # type: ignore[assignment]
-                    res['message'] = message
-                else:
-                    res['message'] = ''
-                author_block = None
-                current_node = chat
-                while current_node:
-                    author_block = current_node.find('div', class_='media-user-name')
-                    if author_block:
-                        break
-                    current_node = current_node.find_previous_sibling('div', class_='chat-msg-item') # type: ignore[assignment]
-                if author_block:
-                    author = author_block.find('a', class_='chat-msg-author-link')
-                    if not author:
-                        sender_lbl = author_block.find('span', class_='chat-msg-author-label')
-                        res['sender'] = cls.clean_text(sender_lbl) if sender_lbl else "FunPay"
-                        if res['sender'] and res['sender'].lower() == 'оповещение':
-                            res['sender'] = 'FunPay' # type: ignore[assignment]
-                            res['is_system'] = True
+            for chat in chats:
+                try:
+                    res: dict[str, Any] = {
+                        'is_system': False,
+                        'node_id': chat.get('id').split('-')[-1]
+                    }
+                    msg_tag = chat.find('div', class_='chat-msg-text')
+                    if msg_tag:
+                        message = msg_tag.get_text(separator='\n').strip() if msg_tag else ''
+                        if not message:
+                            img_link = msg_tag.find('a', class_='chat-img-link')
+                            message = img_link.get('href', '') if img_link else '' # type: ignore[assignment]
+                        res['message'] = message
                     else:
-                        res['sender'] = author.get_text(strip=True) # type: ignore[assignment]
-                else:
-                    res['sender'] = "Unknown" # type: ignore[assignment]
-                result['last_message'] = res
-            except Exception as e:
-                logger.debug(f"Не удалось распарсить последнее сообщение в чате: {e}")
-                result['last_message'] = None # type: ignore[assignment]
+                        res['message'] = ''
+                    author_block = None
+                    current_node = chat
+                    while current_node:
+                        author_block = current_node.find('div', class_='media-user-name')
+                        if author_block:
+                            break
+                        current_node = current_node.find_previous_sibling('div', class_='chat-msg-item') # type: ignore[assignment]
+                    if author_block:
+                        author = author_block.find('a', class_='chat-msg-author-link')
+                        if not author:
+                            sender_lbl = author_block.find('span', class_='chat-msg-author-label')
+                            res['sender'] = cls.clean_text(sender_lbl) if sender_lbl else "FunPay"
+                            if res['sender'] and res['sender'].lower() == 'оповещение':
+                                res['sender'] = 'FunPay' # type: ignore[assignment]
+                                res['is_system'] = True
+                        else:
+                            res['sender'] = author.get_text(strip=True) # type: ignore[assignment]
+                    else:
+                        res['sender'] = "Unknown" # type: ignore[assignment]
+                    result['messages'].append(res)
+                except Exception as e:
+                    logger.debug(f"Не удалось распарсить N сообщение в чате: {e}")
         else:
-            logger.debug('Последнее сообщение не найдено!')
-            result['last_message'] = None # type: ignore[assignment]
+            logger.debug('Сообщений не найдено!')
             # парсинг тех.данных
         try:
             result['data-name'] = chat_div.get('data-name', '') # type: ignore[assignment]

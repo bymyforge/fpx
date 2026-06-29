@@ -32,7 +32,7 @@ class OrderManager:
                 order_id=order_id,
                 status=data['status'],
                 review=data['review'],
-                description=data['desc'],
+                description=data.get('desc'),
                 chat_id=data['chat_id']
             )
         except Exception as e:

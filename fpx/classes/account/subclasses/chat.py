@@ -64,7 +64,7 @@ class ChatManager:
             error_msg = inner_response.get('error', 'Неизвестная ошибка')
             raise fpx_err.FpxMessageDeliverError(f'Сервер вернул ошибку: {error_msg}')
 
-    async def get_chat_data(self, chat_id: int | str):
+    async def get_chat_data(self, chat_id: int | str, last_message_node_id: int | str | None = None):
         '''
         Получает данные чата.
 
@@ -91,21 +91,32 @@ class ChatManager:
             data = self._account._parser.parse_chat(html)
         except Exception as e:
             raise fpx_err.FpxGetChatDataError(f'При выполнении {stage} произошла ошибка: {e}')
-        if data.get('last_message'):
-            last_message_dict = data.get('last_message')
-            last_msg = Message(
-                sender=last_message_dict.get('sender'),
-                text=last_message_dict.get('message'),
-                is_system=last_message_dict.get('is_system'),
-                chat_id=chat_id
-            )
+        good_msg_list = []
+        if data.get('messages'):
+            message_list = []
+            for msg in data.get('messages'):
+                message_list.append(
+                    Message(
+                        node_msg_id=msg.get('node_id'),
+                        sender=msg.get('sender'),
+                        text=msg.get('message'),
+                        is_system=msg.get('is_system'),
+                        chat_id=chat_id
+                    )
+                )
+            if not last_message_node_id:
+                good_msg_list.append(message_list[-1])
+            else:
+                for msg in message_list:
+                    if int(msg.node_msg_id) > int(last_message_node_id):
+                        good_msg_list.append(msg)
         else:
-            last_msg = None
+            good_msg_list = []
         chat = ChatData(
             node_name=data['data-name'],
             csrf_token=data['csrf-token'],
             user_id=data['user-id'],
-            last_message=last_msg
+            last_messages=good_msg_list
         )
         self._account.data._node_names[chat_id] = chat.node_name
         self._account.data._csrf_token = chat.csrf_token

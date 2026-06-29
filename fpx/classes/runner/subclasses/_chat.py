@@ -12,6 +12,7 @@ logger = logging.getLogger("fpx.chat_runner")
 class ChatRunner:
     def __init__(self, runner):
         self.runner = runner
+        self._chat_last_ids = {}
 
     def _compare_chat_cache(self):
         '''
@@ -32,16 +33,17 @@ class ChatRunner:
                         'has refunded', 'has confirmed that', 'deleted their feedback',
                         'replied to their'
                         )
-                    msg_lower = message['last_msg'].lower()
+                    msg_lower = message['last_msg']['message'].lower()
                     if not any(word in msg_lower for word in stop_words):
                         result.append(
                             Message(
+                                node_msg_id=message['last_msg']['node_id'],
                                 sender=message['sender'],
                                 chat_id=message['chat_id'],
-                                text=message['last_msg'],
+                                text=message['last_msg']['message'],
                                 is_system=False
-                                )
                             )
+                        )
         return result
 
     async def _update_chat_cache(self):
@@ -51,7 +53,14 @@ class ChatRunner:
         chats = await self.runner._account.chat.get_chats()
         result = []
         for chat in chats:
-            chat = {'sender': chat.username, 'chat_id': chat.id, 'last_msg': chat.last_msg}
+            chat = {
+                'sender': chat.username,
+                'chat_id': chat.id,
+                'last_msg': {
+                    'node_id': chat.node_msg_id,
+                    'message': chat.last_msg
+                }
+            }
             result.append(chat)
         self.runner._cache['old_msgs'] = self.runner._cache['msgs']
         self.runner._cache['msgs'] = result
@@ -194,6 +203,9 @@ class ChatRunner:
             await self.runner.router.invoke(handler['function'], message, state_ctx)
             break
 
+    def get_last_id(self, chat_id):
+        return self._chat_last_ids.get(chat_id)
+
     async def _check_chats(self):
         await self._update_chat_cache()
         chats = self._compare_chat_cache()
@@ -201,20 +213,27 @@ class ChatRunner:
             async def process_single_chat(chat_cache_obj):
                 chat_msg = None
                 try:
-                    msg_obj = await self.runner._account.chat.get_chat_data(chat_cache_obj.chat_id)
-                    message = msg_obj.last_message
-                    if message is None:
-                        return
-                    stop_list = ['изображение', 'image', 'зображення']
-                    text = chat_cache_obj.text if chat_cache_obj.text.lower() not in stop_list else message.text
-                    chat_msg = Message(
-                        sender=message.sender,
-                        chat_id=chat_cache_obj.chat_id,
-                        text=text,
-                        is_system=message.is_system
-                    )
-                    chat_msg._client = self.runner
-                    await self._trigger_message_handlers(chat_msg)
+                    last_node_id = self.get_last_id(chat_cache_obj.chat_id) or 0
+                    msg_obj = await self.runner._account.chat.get_chat_data(chat_cache_obj.chat_id, last_node_id)
+                    messages = msg_obj.last_messages
+                    for message in messages:
+                        if int(message.node_msg_id) > int(last_node_id):
+                            if message is None:
+                                return
+                            #stop_list = ['изображение', 'image', 'зображення']
+                            text = message.text
+                            chat_msg = Message(
+                                node_msg_id=message.node_msg_id,
+                                sender=message.sender,
+                                chat_id=chat_cache_obj.chat_id,
+                                text=text,
+                                is_system=message.is_system
+                            )
+                            chat_msg._client = self.runner
+                            await self._trigger_message_handlers(chat_msg)
+                    if messages:
+                        new_max_id = max(int(m.node_msg_id) for m in messages)
+                        self._chat_last_ids[chat_cache_obj.chat_id] = str(new_max_id)
                 except Exception as e:
                     logger.debug(f"Ошибка при параллельной обработке чата {chat_cache_obj.chat_id}: {e}", exc_info=True)
                     await self.runner._handle_error(event=chat_msg, exception=e)

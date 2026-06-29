@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any, List
 
 from fpx.utils import errors as fpx_err
 
@@ -24,6 +24,7 @@ class Chat:
 
 @dataclass
 class Message:
+    node_msg_id: int
     sender: str
     chat_id: str | int
     text: str
@@ -46,4 +47,4 @@ class ChatData:
     node_name: str
     csrf_token: str
     user_id: str
-    last_message: Optional[Message]
+    last_messages: List[Message]
