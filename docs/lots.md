@@ -60,3 +60,14 @@ await fp.runner.idle()
 Возвращает `LotEditor`:
 - `csrf_token`, `form_created_at`, `offer_id`, `node_id`
 - `fields` — словарь со всеми полями лота
+
+---
+
+## Альтернативный доступ через `fpx.services`
+
+```python
+from fpx.services import LotManager
+
+lot_mgr = LotManager(fp.account)
+lot = await lot_mgr.get_lot_info('12345678')
+```

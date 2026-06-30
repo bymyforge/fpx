@@ -11,14 +11,16 @@
 Ловит новые отзывы. Если `stars` не указан — ловит все.
 
 ```python
+from fpx import types
+
 @fp.router.on_new_review(stars=5)
-async def five_stars(review: CurReview):
+async def five_stars(review: types.CurReview):
     await review.answer('Спасибо за отзыв!')
 
 @fp.router.on_new_review(stars=1)
 @fp.router.on_new_review(stars=2)
 @fp.router.on_new_review(stars=3)
-async def bad_review(review: CurReview):
+async def bad_review(review: types.CurReview):
     await review.message_author('Извини, давай решим проблему')
 ```
 
@@ -76,3 +78,14 @@ await fp.account.review.review_answer('ABC123', 'Спасибо!')
 ```
 
 Возвращает `True` при успехе.
+
+---
+
+## Альтернативный доступ через `fpx.services`
+
+```python
+from fpx.services import ReviewManager
+
+review_mgr = ReviewManager(fp.account)
+review = await review_mgr.get_review('ABC123')
+```

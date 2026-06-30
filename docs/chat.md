@@ -9,8 +9,10 @@
 Основной способ — через `@fp.router.on_message()`. Подробно описано в разделе [Роутер](router.md).
 
 ```python
+from fpx import types
+
 @fp.router.on_message()
-async def any_msg(message: Message):
+async def any_msg(message: types.Message):
     print(f'{message.sender}: {message.text}')
     await message.answer('Принято')
 ```
@@ -18,7 +20,7 @@ async def any_msg(message: Message):
 ### Команды
 
 ```python
-async def status_cmd(message: Message):
+async def status_cmd(message: types.Message):
     await message.answer('Бот работает')
 
 fp.router.message_commands({'!status': status_cmd})
@@ -95,3 +97,18 @@ print(data.last_message.text)
 - `csrf_token` — токен для POST-запросов
 - `user_id` — твой ID
 - `last_message` — объект `Message` (последнее сообщение)
+
+---
+
+## Альтернативный доступ через `fpx.services`
+
+Все методы выше доступны и так же через `fp.account.chat`, и через отдельно объявленный `ChatManager` из `fpx.services` - оба варианта работают с тем же самым аккаунтом, разница только в стиле кода:
+
+```python
+from fpx.services import ChatManager
+
+chat = ChatManager(fp.account)
+chats = await chat.get_chats()
+```
+
+`ChatManager` не создаёт ничего своего — он просто принимает уже существующий `account` (например `fp.account`) и даёт к нему ещё один способ доступа.

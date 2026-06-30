@@ -1,6 +1,6 @@
 import asyncio
 
-from fpx import CurReview, FunPayTools, Message, Order
+from fpx import FunPayTools, types
 
 CATEGORY_TO_WATCH = 1316
 
@@ -16,7 +16,7 @@ async def main():
 
     # ─── Сообщения ───
     @fp.router.on_message()
-    async def chat_handler(message: Message):
+    async def chat_handler(message: types.Message):
         print(f"[MSG] {message.sender}: {message.text}")
         if message.is_system:
             return
@@ -24,19 +24,19 @@ async def main():
 
     # ─── Новые заказы ───
     @fp.router.on_new_order()
-    async def new_order(order: Order):
+    async def new_order(order: types.Order):
         print(f"[ORDER] Новый: #{order.order_id} — {order.name}")
         await order.answer(f'Спасибо за заказ "{order.name}"! Начинаю выполнение.')
 
     # ─── Подтверждённые заказы ───
     @fp.router.on_confirmed_orders()
-    async def confirmed(order: Order):
+    async def confirmed(order: types.Order):
         print(f"[CONFIRM] Заказ #{order.order_id} подтверждён!")
         await order.answer("Заказ выполнен! Буду рад отзыву ⭐")
 
     # ─── Отзывы ───
     @fp.router.on_new_review(stars=5)
-    async def review_handler(review: CurReview):
+    async def review_handler(review: types.CurReview):
         print(f"[REVIEW] {review.stars}★: {review.text}")
         await review.answer("Спасибо за отзыв! ❤️")
         await review.message_author("Спасибо за отзыв! ❤️")

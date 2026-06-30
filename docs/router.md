@@ -1,6 +1,6 @@
 # Роутер и хендлеры
 
-Роутер — это штука которая связывает события с твоими функциями. Все декораторы висят на `fp.router`. Также есть методы для регистрации команд.
+Роутер — это штука которая связывает события с твоими функциями. Все декораторы висят на объекте `Router` — это либо `fp.router` (простой стиль), либо переменная `router`, которую ты сам вытащил через `router = fp.runner.router` или создал в отдельном файле через `Router()` (продвинутый стиль). Поведение одинаковое — в примерах ниже используется `fp.router`, но всё работает так же через `router`.
 
 ---
 
@@ -27,8 +27,10 @@
 **В хендлер прилетает объект `Message`:**
 
 ```python
+from fpx import types
+
 @fp.router.on_message()
-async def any_msg(message: Message):
+async def any_msg(message: types.Message):
     print(f'{message.sender}: {message.text}')
 ```
 
@@ -36,19 +38,19 @@ async def any_msg(message: Message):
 
 ```python
 @fp.router.on_message(text='!привет')
-async def cmd_hello(message: Message):
+async def cmd_hello(message: types.Message):
     await message.answer('Привет')
 
 @fp.router.on_message(contains=['купить', 'заказать'])
-async def buy_intent(message: Message):
+async def buy_intent(message: types.Message):
     await message.answer('Хочешь купить? Пиши !товар')
 
 @fp.router.on_message(regex=r'^id\d+$')
-async def by_regex(message: Message):
+async def by_regex(message: types.Message):
     await message.answer('Нашёл ID')
 
 @fp.router.on_message(mapping={'привет': 'Привет!', 'как дела': 'Норм'})
-async def mapped(message: Message):
+async def mapped(message: types.Message):
     # ответ уже отправлен автоматически, этот хендлер всё равно вызовется
     pass
 ```
@@ -64,10 +66,10 @@ async def mapped(message: Message):
 Регистрирует команды для чата. Ключ — команда (например `!start`), значение — асинхронная функция.
 
 ```python
-async def start_cmd(message: Message):
+async def start_cmd(message: types.Message):
     await message.answer('Привет, введи ник')
 
-async def help_cmd(message: Message):
+async def help_cmd(message: types.Message):
     await message.answer('Команды: !start, !help')
 
 fp.router.message_commands({
@@ -77,19 +79,19 @@ fp.router.message_commands({
 ```
 
 В функцию-команду автоматически передаются:
-- `message: Message` — если параметр аннотирован как `Message` или называется `message`
+- `message: types.Message` — если параметр аннотирован как `types.Message`
 - `state: FSMContext` — если параметр аннотирован как `FSMContext`
 - `Dependency(...)` — зависимости, смотри пример ниже
 
 **Пример с Dependency:**
 
 ```python
-from fpx import Dependency
+from fpx import Dependency, types
 
-async def get_user(message: Message):
+async def get_user(message: types.Message):
     return {'name': message.sender, 'vip': True}
 
-async def vip_cmd(message: Message, user: dict = Dependency(get_user)):
+async def vip_cmd(message: types.Message, user: dict = Dependency(get_user)):
     if user['vip']:
         await message.answer('Ты VIP')
 
@@ -108,7 +110,7 @@ fp.router.message_commands({'!vip': vip_cmd})
 
 ```python
 @fp.router.on_orders()
-async def all_orders(order: Order):
+async def all_orders(order: types.Order):
     print(f'Заказ {order.order_id}: {order.status}')
 ```
 
@@ -118,7 +120,7 @@ async def all_orders(order: Order):
 
 ```python
 @fp.router.on_new_order(mapping=['ключ', 'key'])
-async def auto_key(order: Order):
+async def auto_key(order: types.Order):
     # сработает только если в описании есть "ключ" или "key"
     await order.answer('Вот твой ключ: ABC-123')
 ```
@@ -129,7 +131,7 @@ async def auto_key(order: Order):
 
 ```python
 @fp.router.on_confirmed_orders()
-async def confirmed(order: Order):
+async def confirmed(order: types.Order):
     await order.answer('Спасибо за подтверждение!')
 ```
 
@@ -139,7 +141,7 @@ async def confirmed(order: Order):
 
 ```python
 @fp.router.on_refunded_orders()
-async def refund(order: Order):
+async def refund(order: types.Order):
     print(f'Возврат по заказу {order.order_id}')
 ```
 
@@ -148,7 +150,7 @@ async def refund(order: Order):
 Регистрирует целевые команды для автовыдачи по новым заказам. Ключ — фрагмент описания заказа, значение — функция.
 
 ```python
-async def sell_guide(order: Order):
+async def sell_guide(order: types.Order):
     print(f'ЗАКАААЗ')
     await order.answer('Привет, введи свой ник')
 
@@ -165,11 +167,11 @@ fp.router.order_targets({'id: 133': sell_guide})
 
 ```python
 @fp.router.on_new_review(stars=5)
-async def good_review(review: CurReview):
+async def good_review(review: types.CurReview):
     await review.answer('Спасибо!')
 
 @fp.router.on_new_review(stars=1)
-async def bad_review(review: CurReview):
+async def bad_review(review: types.CurReview):
     await review.message_author('Давай решим проблему')
 ```
 
@@ -179,7 +181,7 @@ async def bad_review(review: CurReview):
 @fp.router.on_new_review(stars=1)
 @fp.router.on_new_review(stars=2)
 @fp.router.on_new_review(stars=3)
-async def handle_bad(review: CurReview):
+async def handle_bad(review: types.CurReview):
     print(f'Плохой отзыв: {review.stars} звезд')
 ```
 
@@ -193,7 +195,7 @@ async def handle_bad(review: CurReview):
 
 ```python
 @fp.router.on_lot_category()
-async def lot_changed(lot: CategoryLastLot):
+async def lot_changed(lot: types.CategoryLastLot):
     print(f'Новая цена в категории {lot.category_id}: {lot.price}')
 ```
 
@@ -203,7 +205,7 @@ async def lot_changed(lot: CategoryLastLot):
 
 ```python
 @fp.router.on_chip_category()
-async def chip_changed(lot: CategoryLastLot):
+async def chip_changed(lot: types.CategoryLastLot):
     print(f'Чипсы: новая цена {lot.price}, лот {lot.offer_id}')
 ```
 
@@ -245,16 +247,32 @@ async def error_handler(message, error):
 
 ## Подключение внешних роутеров
 
-### `fp.router.include_router(router)`
+### `router.include_router(другой_router)`
 
-Позволяет подключать хендлеры из других роутеров (для плагинов).
+Хендлеры не обязательно регистрировать в одном файле. В любом модуле можно создать свой `Router` через `from fpx import Router`, навесить на него хендлеры, а затем подключить к главному роутеру методом `include_router`.
+
+**handlers/test.py:**
 
 ```python
+from fpx import Router, types
+
 other_router = Router()
 
 @other_router.on_message(text='!test')
-async def test(message: Message):
+async def test(message: types.Message):
     await message.answer('OK')
-
-fp.router.include_router(other_router)
 ```
+
+**main.py:**
+
+```python
+from handlers.test import other_router
+
+# простой стиль:
+fp.router.include_router(other_router)
+
+# продвинутый стиль (если ты вытащил router = fp.runner.router):
+# router.include_router(other_router)
+```
+
+Метод объединяет хендлеры обоих роутеров — после вызова `fp.router` (или `router`) будет знать обо всех хендлерах из `other_router`. Удобно для плагинов и разбивки большого бота на модули по смыслу (например, `handlers/messages.py`, `handlers/orders.py`, `handlers/reviews.py`).

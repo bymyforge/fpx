@@ -1,3 +1,4 @@
+
 # Быстрый старт
 
 Разберём как поднять первого бота на fpx-engine.
@@ -16,12 +17,6 @@
 
 ---
 
-## 2. Установка
-
-```bash
-pip install fpx-engine
-```
-
 Требуется Python 3.10+.
 
 ---
@@ -32,13 +27,13 @@ pip install fpx-engine
 
 ```python
 import asyncio
-from fpx import FunPayTools, Message
+from fpx import FunPayTools, types
 
 async def main():
-    fp = FunPayTools('ВАШ_GOLDEN_KEY')
+    fp = FunPayTools('ВАШ_GOLDEN_KEY', 'ВАШ_GOLDEN_SEAL')
 
     @fp.router.on_message()
-    async def echo(message: Message):
+    async def echo(message: types.Message):
         await message.answer(f'Ты написал: {message.text}')
 
     await fp.runner.start_polling(3, is_background=True)
@@ -56,11 +51,13 @@ python main.py
 
 Попробуй написать своему боту с другого аккаунта — он ответит.
 
+> 💡 В примере выше использован простой стиль (всё через `fp`). Есть ещё продвинутый стиль с раздельными `account`/`runner`/`router` — оба способа равноправны, выбирай по вкусу. Подробнее - на [главной странице](index.md#два-варианта-взаимодействия-с-библиотекой).
+
 ---
 
 ## 4. Следующие шаги
 
-- [Роутер и хендлеры](router.md) — все декораторы и события
-- [Чаты](chat.md) — работа с сообщениями
-- [Заказы](orders.md) — автовыдача и отслеживание
-- [Машина состояний](fsm.md) — пошаговые диалоги
+- [Роутер и хендлеры](router.md) - все декораторы и события
+- [Чаты](chat.md) - работа с сообщениями
+- [Заказы](orders.md) - автовыдача и отслеживание
+- [Машина состояний](fsm.md) - пошаговые диалоги

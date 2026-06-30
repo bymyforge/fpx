@@ -1,6 +1,6 @@
 import asyncio
 
-from fpx import CurReview, FunPayTools
+from fpx import FunPayTools, types
 
 
 async def main():
@@ -9,7 +9,7 @@ async def main():
     @fp.router.on_new_review(stars=1)
     @fp.router.on_new_review(stars=2)
     @fp.router.on_new_review(stars=3)
-    async def handle_review(review: CurReview):
+    async def handle_review(review: types.CurReview):
         print(f"[REVIEW] {review.stars}★ от {review.author}: {review.text}")
         await review.message_author("Извините за неудобства. Давайте решим проблему.")
         print("[REVIEW] Ответ на негативный отзыв отправлен.")

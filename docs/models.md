@@ -1,6 +1,6 @@
 # Модели
 
-Все датаклассы которые используются во фреймворке.
+Все датаклассы которые используются во фреймворке. Самому их создавать не нужно — фреймворк отдаёт уже готовые объекты в хендлеры. Импортировать модели можно через `from fpx import types`, а затем обращаться как `types.Message`, `types.Order`, `types.CurReview`, `types.CategoryLastLot`.
 
 ---
 
@@ -61,7 +61,7 @@
 ---
 
 ## Review
-n
+
 Статический отзыв (без связи с заказом). Возвращается `get_review`.
 
 | Поле | Тип | Описание |
@@ -194,11 +194,11 @@ n
 Зависимость для хендлеров.
 
 ```python
-from fpx import Dependency
+from fpx import Dependency, types
 
 def get_user(message):
     return {'name': message.sender}
 
-async def handler(message: Message, user: dict = Dependency(get_user)):
+async def handler(message: types.Message, user: dict = Dependency(get_user)):
     print(user)
 ```

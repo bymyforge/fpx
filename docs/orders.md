@@ -13,8 +13,10 @@
 ⚠️ Не используй вместе с узкими хендлерами — будет дублирование.
 
 ```python
+from fpx import types
+
 @fp.router.on_orders()
-async def any_order(order: Order):
+async def any_order(order: types.Order):
     print(f'Заказ {order.order_id}, статус: {order.status}')
 ```
 
@@ -24,7 +26,7 @@ async def any_order(order: Order):
 
 ```python
 @fp.router.on_new_order()
-async def new_order(order: Order):
+async def new_order(order: types.Order):
     print(f'Новый заказ #{order.order_id} от {order.client_name}')
     await order.answer(f'Заказ "{order.name}" принят!')
 ```
@@ -33,7 +35,7 @@ async def new_order(order: Order):
 
 ```python
 @fp.router.on_new_order(mapping=['ключ', 'key'])
-async def auto_key(order: Order):
+async def auto_key(order: types.Order):
     await order.answer('Вот твой ключ: XXX-YYY-ZZZ')
 ```
 
@@ -43,7 +45,7 @@ async def auto_key(order: Order):
 
 ```python
 @fp.router.on_confirmed_orders()
-async def confirmed(order: Order):
+async def confirmed(order: types.Order):
     await order.answer('Спасибо за подтверждение! Буду рад отзыву')
 ```
 
@@ -53,7 +55,7 @@ async def confirmed(order: Order):
 
 ```python
 @fp.router.on_refunded_orders()
-async def refunded(order: Order):
+async def refunded(order: types.Order):
     print(f'Возврат: {order.order_id}')
 ```
 
@@ -106,3 +108,17 @@ await fp.account.order.refund_order('ABC123')
 ```
 
 Возвращает `True` если возврат прошёл. При ошибке — `FpxRefundError`.
+
+---
+
+## Альтернативный доступ через `fpx.services`
+
+Те же методы доступны через отдельно объявленный `OrderManager` из `fpx.services`, если хочется явно держать его как отдельную переменную:
+
+```python
+from fpx.services import OrderManager
+
+order_mgr = OrderManager(fp.account)
+details = await order_mgr.get_order_details('ABC123')
+await order_mgr.refund_order('ABC123')
+```

@@ -9,6 +9,7 @@
 ```
 FpxError
 ├── FpxAccountError
+│   ├── FpxAuthError
 │   ├── FpxGetChatsError
 │   ├── FpxMessageDeliverError
 │   ├── FpxRaisingLotError
@@ -54,6 +55,8 @@ FpxError
 | Класс | Когда кидается |
 |-------|----------------|
 | `FpxError` | Базовая ошибка, ловит всё |
+| `FpxAuthError` | Передан неверный `golden_key`/`golden_seal` |
+| `FpxGetChatsError` | Не удалось запросить список чатов |
 | `FpxMessageDeliverError` | Сообщение не отправилось |
 | `FpxRaisingLotError` | Не удалось поднять лоты (нет лотов или ошибка) |
 | `FpxRefundError` | Возврат не прошёл |
@@ -61,6 +64,15 @@ FpxError
 | `FpxLotEditingError` | Цена не поменялась после редактирования |
 | `FpxAnswerReviewError` | Ответ на отзыв не сохранился |
 | `FpxClientNotAttachedError` | Попытка вызвать `.answer()` у объекта без привязки к клиенту |
+| `FpxGetGameIDError` | Не удалось получить `game_id` категории |
+| `FpxGetLastCategoryLotError` | Не удалось получить последний лот в категории |
+| `FpxGetChatDataError` | Не удалось получить технические данные чата |
+| `FpxGetLotEditorInfoError` | Не удалось получить данные формы редактора лота |
+| `FpxGetLotInfoError` | Не удалось получить информацию о лоте |
+| `FpxGetOrderInfoError` | Не удалось получить информацию о заказе |
+| `FpxGetUserDataError` | Не удалось получить данные юзера (csrf_token, user_id) |
+| `FpxGetUserSellsError` | Не удалось получить список продаж |
+| `FpxGetProfileError` | Не удалось получить данные профиля |
 | `FpxNullDataError` | Парсер получил пустую страницу (слетела сессия/изменилась вёрстка) |
 | `FpxCriticalRunnerError` | Критический сбой раннера |
 | `FpxAttributeError` | Неправильно переданы атрибуты в хендлер |

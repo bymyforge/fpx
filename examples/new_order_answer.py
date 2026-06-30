@@ -1,13 +1,13 @@
 import asyncio
 
-from fpx import FunPayTools, Order
+from fpx import FunPayTools, types
 
 
 async def main():
-    fp = FunPayTools('gkey', 'YOUR_GOLDEN_SEAL')
+    fp = FunPayTools('YOUR_GOLDEN_KEY', 'YOUR_GOLDEN_SEAL')
 
     @fp.router.on_new_order()
-    async def greet_new_order(order: Order):
+    async def greet_new_order(order: types.Order):
         print(f"[ORDER] Новый заказ #{order.order_id} от {order.client_name}")
 
         # Отправляем сообщение в чат заказа

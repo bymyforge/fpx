@@ -2,7 +2,7 @@ import asyncio
 from dataclasses import dataclass
 from typing import Annotated
 
-from fpx import Dependency, FunPayTools, Message
+from fpx import Dependency, FunPayTools, types
 
 
 @dataclass
@@ -12,13 +12,13 @@ class UserSetting:
     can_sell: bool
     is_queue: bool
 
-async def get_setting_object(message: Message) -> UserSetting:
+async def get_setting_object(message: types.Message) -> UserSetting:
     """Функция для получения настроек из БД,
     Замените возвращаемое значение на реальный запрос в базу данных.
     """
     return UserSetting(is_online=True, can_sell=True, is_queue=False)
 
-async def status_command(message: Message, user: Annotated[UserSetting, Dependency(get_setting_object)]):
+async def status_command(message: types.Message, user: Annotated[UserSetting, Dependency(get_setting_object)]):
     """Обработчик команды !status. Выводит текущий статус продавца."""
     online_status = "в" if user.is_online else "не в"
     sell_status = "могу" if user.can_sell else "не могу"
@@ -28,14 +28,14 @@ async def status_command(message: Message, user: Annotated[UserSetting, Dependen
         f"{sell_status} выдать заказ, очередь: {queue_status}."
     )
 
-async def ping_seller_command(message: Message):
+async def ping_seller_command(message: types.Message):
     '''Обработчик команды !ping. Уведомляет продавца о вызове.'''
     print(f'Продавца вызвал пользователь {message.sender}')
     await message.answer('Продавец уведомлен')
 
 async def main():
     # Инициализируем библиотеку
-    fp = FunPayTools('gkey', 'YOUR_GOLDEN_SEAL')
+    fp = FunPayTools('YOUR_GOLDEN_KEY', 'YOUR_GOLDEN_SEAL')
 
     # Регистрируем команды в роутер
     fp.router.message_commands({

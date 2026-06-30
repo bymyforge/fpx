@@ -11,8 +11,10 @@
 Следит за обычными лотами. Срабатывает когда меняется цена или топ-1 в отслеживаемых категориях. Твои собственные лоты игнорируются.
 
 ```python
+from fpx import types
+
 @fp.router.on_lot_category()
-async def lot_changed(lot: CategoryLastLot):
+async def lot_changed(lot: types.CategoryLastLot):
     print(f'Конкурент {lot.owner_username} перебил цену до {lot.price}')
 ```
 
@@ -22,7 +24,7 @@ async def lot_changed(lot: CategoryLastLot):
 
 ```python
 @fp.router.on_chip_category()
-async def chip_changed(lot: CategoryLastLot):
+async def chip_changed(lot: types.CategoryLastLot):
     print(f'Чипсы: {lot.offer_id} = {lot.price}')
 ```
 
@@ -75,4 +77,15 @@ for lot in lots:
 
 ```python
 lots = await fp.account.category.get_chip_category_last_lot(55)
+```
+
+---
+
+## Альтернативный доступ через `fpx.services`
+
+```python
+from fpx.services import CategoryManager
+
+category_mgr = CategoryManager(fp.account)
+lots = await category_mgr.get_lot_category_last_lot(1316)
 ```

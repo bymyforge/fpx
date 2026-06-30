@@ -21,12 +21,12 @@ await fp.account.editor.change_lot_price('12345678', '150.50')
 **Пример автодемпинга:**
 
 ```python
-from fpx import CategoryLastLot
+from fpx import types
 
 MY_LOT_ID = '11223344'
 
 @fp.router.on_lot_category()
-async def auto_dump(lot: CategoryLastLot):
+async def auto_dump(lot: types.CategoryLastLot):
     new_price = round(lot.price - 0.1, 2)
     await fp.account.editor.change_lot_price(MY_LOT_ID, str(new_price))
     print(f'Перебил цену до {new_price}')
@@ -49,3 +49,14 @@ await fp.account.editor.toggle_on_lot('12345678')
 ```
 
 Обе функции возвращают `True` при успехе. При ошибке — `FpxRequestError`.
+
+---
+
+## Альтернативный доступ через `fpx.services`
+
+```python
+from fpx.services import FunPayEditor
+
+editor = FunPayEditor(fp.account)
+await editor.change_lot_price('12345678', '150.50')
+```

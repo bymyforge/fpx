@@ -60,3 +60,14 @@ print(f'{balance.eur} €')
 ```
 
 Возвращает `Balance`.
+
+---
+
+## Альтернативный доступ через `fpx.services`
+
+```python
+from fpx.services import ProfileManager
+
+profile_mgr = ProfileManager(fp.account)
+balance = await profile_mgr.get_balance()
+```
