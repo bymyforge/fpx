@@ -38,6 +38,24 @@ class LotManager:
         lot = LotEditor(**main_data, fields=other_fields)
         return lot
 
+    async def get_lot_secrets(self, lot_id: int | str):
+        '''
+        Запрос данных автовыдачи лота.
+
+        Args:
+            lot_id (int | str): ID лота
+        Returns:
+            list[str]: Список строк товаров автовыдачи.
+        Raises:
+            FpxGetLotInfoError: Ошибка запроса данных лота
+        '''
+        try:
+            stage = 'запросе данных'
+            data = await self._get_lot_editor_details(lot_id)
+        except Exception as e:
+            raise fpx_err.FpxGetLotInfoError(f'При {stage} произошла ошибка: {e}')
+        return data.fields['secrets'].split('\n')
+
     async def get_lot_info(self, lot_id):
         '''
         Собирает данные лота.
